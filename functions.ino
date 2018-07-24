@@ -7,6 +7,24 @@ String CMD_ID = "         ";
 
 
 #pragma region functions
+
+//void DEBUG.print(String x, bool isSendToMQTT = false);
+//void DEBUG.print(String x, bool isSendToMQTT) {
+//	DEBUG.print(x);
+//	if (isSendToMQTT) {
+//		mqtt_publish("Mushroom/Debug/" + HubID, x, false);
+//	}
+//}
+//void DEBUG.println(String x = "", bool isSendToMQTT = false);
+//void DEBUG.println(String x, bool isSendToMQTT) {
+//	DEBUG.println(x);
+//	if (x = "") return;
+//	if (isSendToMQTT) {
+//		mqtt_publish("Mushroom/Debug/" + HubID, x, false);
+//		mqtt_publish("Mushroom/Debug/" + HubID, "\r\n", false);
+//	}
+//}
+
 bool smart_config() {
 	Serial.println(("SmartConfig started."));
 	unsigned long t = millis();
@@ -57,32 +75,28 @@ void wifi_init() {
 	WiFi.setAutoConnect(true);
 	WiFi.setAutoReconnect(true);
 	WiFi.mode(WIFI_STA);
-	//WiFi.begin("MIC");
+	WiFi.begin("Gith", "12345678");
 
 	DEBUG.println();
-	WiFi.printDiag(Serial);
+	WiFi.printDiag(DEBUG);
 	DEBUG.println();
 
-	//Serial.println(("\nConnecting..."));
-	//
-	//if (WiFi.waitForConnectResult() == WL_CONNECTED)
-	//{
-	//	Serial.println(("connected\n"));
-	//}
-	//else
-	//{
-	//	Serial.println(("connect again\n"));
-	//	if (WiFi.waitForConnectResult() == WL_CONNECTED)
-	//	{
-	//		Serial.println(("connected\n"));
-	//		return;
-	//	}
-	//
-	//	smart_config();
-	//}
+	DEBUG.println(("\nConnecting..."));
+	
+	if (WiFi.waitForConnectResult() == WL_CONNECTED)
+	{
+		DEBUG.println(("connected\n"));
+	}
+	else
+	{
+		WiFiManager wifiManager;
+		wifiManager.autoConnect(String("SMARTMUSHROOM-" + HubID).c_str());
+	}
 
-	Serial.print("RSSI: ");
-	Serial.println(WiFi.RSSI());
+	DEBUG.print("\r\nIP Address: ");
+	DEBUG.println(WiFi.localIP());
+	DEBUG.print("RSSI: ");
+	DEBUG.println(WiFi.RSSI());
 }
 
 void wifi_loop() {

@@ -1,31 +1,21 @@
 ﻿
+#include <WiFiManager.h>
 #include <WiFi.h>
-#include <Button.h>
 #include <TimeLib.h>
 #include <Time.h>
 #include <SHT1x.h>
-#include "hardware.h"
-//#include <DHT.h>
+#include <Button.h>
 #include "Sensor.h"
+#include "hardware.h"
 #include <Wire.h>
 //#include <LiquidCrystal_I2C.h>
 #include "mqtt_helper.h"
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 
-//#define USE_OLED
-#ifdef USE_OLED
-#include <SSD1306.h>
-#include <qrcode.h>
-#endif // USE_OLED
-
-#define __VERSION__	"2.1.16"
+#define __VERSION__	"3.1"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
-
-//WiFiManager wifiManager;
-Button myBtn(BUTTON, true, true, 20);
-
 
 bool STT_PUMP_MIX = false;
 bool STT_PUMP_FLOOR = false;
@@ -34,42 +24,11 @@ bool STT_FAN_MIX = false;
 bool STT_LIGHT = false;
 bool STT_LED_STT = false;
 
-
-//void DEBUG.print(String x, bool isSendToMQTT = false);
-//void DEBUG.print(String x, bool isSendToMQTT) {
-//	DEBUG.print(x);
-//	if (isSendToMQTT) {
-//		mqtt_publish("Mushroom/Debug/" + HubID, x, false);
-//	}
-//}
-//void DEBUG.println(String x = "", bool isSendToMQTT = false);
-//void DEBUG.println(String x, bool isSendToMQTT) {
-//	DEBUG.println(x);
-//	if (x = "") return;
-//	if (isSendToMQTT) {
-//		mqtt_publish("Mushroom/Debug/" + HubID, x, false);
-//		mqtt_publish("Mushroom/Debug/" + HubID, "\r\n", false);
-//	}
-//}
 void updateTimeStamp(unsigned long interval);
 bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp);
-String getID() {
-	byte mac[6];
-	WiFi.macAddress(mac);
-	String id;
-	for (int i = 0; i < 6; i++)
-	{
-		id += mac[i] < 10 ? "0" + String(mac[i], HEX) : String(mac[i], HEX);
-	}
-	id.toUpperCase();
-	return id;
-}
-String HubID = "600194092C1D";// getID();
 
-#ifdef USE_OLED
-SSD1306  display(0x3c, SDA, SCL);
-QRcode qrcode(&display);
-#endif // USE_OLED
+String HubID;
+
 
 bool flag_SmartConfig = false;
 bool flag_error_wifi = false;
@@ -78,84 +37,26 @@ bool flag_water_empty = false;
 
 void setup()
 {
-#ifdef USE_OLED
-	display.init();
-	display.clear();
-	display.flipScreenVertically();
-	display.setContrast(255);
-
-	qrcode.init();
-	qrcode.create("HID=" + HubID);
-#endif // USE_OLED
 	delay(50);
-	Serial.begin(74880);
+	Serial.begin(115200);
 	Serial.setTimeout(20);
 
-	////====	
-	//display.clear();
-	//display.setTextAlignment(TEXT_ALIGN_LEFT);
-	//display.setFont(ArialMT_Plain_16);
-	//display.drawString(0, 10, "SmartConfig");
-	//display.display();
-
-	//Serial.println(("SmartConfig started."));
-	//WiFi.beginSmartConfig();
-	//while (1) {
-	//	delay(100);
-	//	Serial.print(("."));
-	//	if (WiFi.smartConfigDone()) {
-	//		WiFi.stopSmartConfig();
-	//		break;
-	//	}
-	//}
-
-	//display.clear();
-	//display.setTextAlignment(TEXT_ALIGN_LEFT);
-	//display.setFont(ArialMT_Plain_16);
-	//display.drawString(0, 10, "Success");
-	//display.display();
-
-	//Serial.println(("SmartConfig: Success"));
-	//WiFi.printDiag(Serial);
-
-	//wifi_init();
-	//display.clear();
-	//display.setTextAlignment(TEXT_ALIGN_LEFT);
-	//display.setFont(ArialMT_Plain_16);
-	//display.drawString(0, 10, WiFi.localIP().toString());
-	//display.display();
-	////====
-
-	Serial.println("HID=" + HubID);
-
-	hardware_init();
-	wifi_init();
-
-	out(LED_STT, OFF);
-	Serial.println(("LED_STT OFF"));
-
-#ifdef USE_OLED
-	display.clear();
-	display.setTextAlignment(TEXT_ALIGN_LEFT);
-	display.setFont(ArialMT_Plain_16);
-	display.drawString(0, 10, "Connected");
-	display.display();
-#endif // USE_OLED
-
-	//DEBUG.print(("IP: "));
-	//DEBUG.println(WiFi.localIP().toString());
-	DEBUG.print(("Firmware Version: "));
+	DEBUG.print(("\r\nFirmware Version: "));
 	DEBUG.println(_firmwareVersion);
 
-	Serial.print("ID = ");
-	Serial.println(HubID);
-	//updateTimeStamp(0);
+	HubID = getMacAddress();
+	hardware_init();
+	wifi_init();
+	out(LED_STT, OFF);
+	DEBUG.println(("LED_STT OFF"));
+
+
+	updateTimeStamp(0);
 	mqtt_init(); 
 }
 
 void loop()
 {
-	/* add main program code here */
 	wifi_loop();
 	led_loop();
 	updateTimeStamp(3600000);

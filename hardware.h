@@ -6,8 +6,8 @@
 #else
 #include "WProgram.h"
 #endif
-
-extern String HubID;
+#include "esp_system.h"
+#include <Button.h>
 
 #define DEBUG Serial
 
@@ -51,6 +51,10 @@ extern bool stt_fan_wind;
 extern bool stt_light;
 extern bool stt_led;
 
+extern String HubID;
+extern Button myBtn;
+
 void hardware_init();
+String getMacAddress();
 #endif
 
