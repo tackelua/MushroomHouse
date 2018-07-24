@@ -17,6 +17,8 @@
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
+![Rr]elease/MushroomHouse.bin
+
 x64/
 x86/
 bld/
@@ -331,3 +333,4 @@ ASALocalRun/
 .mfractor/
 /MushroomHouse.vcxproj
 /MushroomHouse.vcxproj.filters
+MushroomHouse.vcxproj
