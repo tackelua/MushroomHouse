@@ -13,7 +13,7 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 
-#define __VERSION__	"3.1"
+#define __VERSION__	"3.1.0"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
