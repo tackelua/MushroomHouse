@@ -1,6 +1,6 @@
-﻿
-#include <WiFiManager.h>
+
 #include <WiFi.h>
+#include <WiFiMulti.h>
 #include <TimeLib.h>
 #include <Time.h>
 #include <SHT1x.h>
@@ -13,8 +13,13 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <ESP32httpUpdate.h>
+#include <LiquidCrystal_I2C.h>
+#include <Ticker.h>
+#include <WebServer.h>
+#include <DNSServer.h>
+#include <WiFiManager.h>
 
-#define __VERSION__	"3.1.1.0"
+#define __VERSION__  "3.1.2"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
@@ -38,32 +43,33 @@ bool flag_water_empty = false;
 
 void setup()
 {
-	delay(50);
-	Serial.begin(115200);
-	Serial.setTimeout(20);
+  delay(50);
+  Serial.begin(115200);
+  Serial.setTimeout(20);
 
-	DEBUG.print(("\r\nFirmware Version: "));
-	DEBUG.println(_firmwareVersion);
+  DEBUG.print(("\r\nFirmware Version: "));
+  DEBUG.println(_firmwareVersion);
 
-	HubID = getMacAddress();
-	hardware_init();
-	wifi_init();
-	out(LED_STT, OFF);
-	DEBUG.println(("LED_STT OFF"));
-
-
-	updateTimeStamp(0);
-	mqtt_init(); 
+  HubID = getMacAddress();
+  lcd_init();
+  hardware_init();
+  wifi_init();
+  out(LED_STT, OFF);
+  DEBUG.println(("LED_STT OFF"));
+  
+  updateTimeStamp(0);
+  mqtt_init(); 
 }
 
 void loop()
 {
-	wifi_loop();
-	led_loop();
-	updateTimeStamp(3600000);
-	mqtt_loop();
-	serial_command_handle();
-	button_handle();
-	update_sensor(10000);
-	auto_control();
+  wifi_loop();
+  led_loop();
+  updateTimeStamp(3600000);
+  mqtt_loop();
+  serial_command_handle();
+  button_handle();
+  update_sensor(10000);
+  auto_control();
 }
+

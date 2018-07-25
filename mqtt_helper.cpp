@@ -25,7 +25,6 @@ const String off_ = "off";
 int TEMP_MAX, TEMP_MIN, HUMI_MAX, HUMI_MIN, LIGHT_MAX, LIGHT_MIN;
 bool library = false;
 
-extern String timeStr;
 extern bool stt_pump_mix, stt_fan_mix, stt_light;
 extern bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp);
 extern void send_status_to_server();
