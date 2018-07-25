@@ -12,8 +12,9 @@
 #include "mqtt_helper.h"
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
+#include <ESP32httpUpdate.h>
 
-#define __VERSION__	"3.1.0"
+#define __VERSION__	"3.1.1.0"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 

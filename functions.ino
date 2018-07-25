@@ -75,7 +75,8 @@ void wifi_init() {
 	WiFi.setAutoConnect(true);
 	WiFi.setAutoReconnect(true);
 	WiFi.mode(WIFI_STA);
-	WiFi.begin("Gith", "12345678");
+	//WiFi.begin("Gith", "12345678");
+	WiFi.begin("DTU");
 
 	DEBUG.println();
 	WiFi.printDiag(DEBUG);
@@ -89,8 +90,9 @@ void wifi_init() {
 	}
 	else
 	{
-		WiFiManager wifiManager;
-		wifiManager.autoConnect(String("SMARTMUSHROOM-" + HubID).c_str());
+		//WiFiManager wifiManager;
+		//wifiManager.autoConnect(String("SMARTMUSHROOM-" + HubID).c_str());
+		smart_config();
 	}
 
 	DEBUG.print("\r\nIP Address: ");
@@ -214,28 +216,30 @@ void updateTimeStamp(unsigned long interval = 0) {
 	static bool wasSync = false;
 	if (interval == 0) {
 		{
-			Serial.println(("Update timestamp"));
-			String strTimeStamp = http_request("date.jsontest.com");
-			Serial.println(strTimeStamp);
-			DynamicJsonBuffer timestamp(500);
-			JsonObject& jsTimeStamp = timestamp.parseObject(strTimeStamp);
-			if (jsTimeStamp.success()) {
-				String tt = jsTimeStamp["milliseconds_since_epoch"].asString();
-				tt = tt.substring(0, tt.length() - 3);
-				long ts = tt.toInt();
-				if (ts > 1000000000) {
-					t_pre_update = millis();
-					wasSync = true;
-					setTime(ts);
-					adjustTime(7 * SECS_PER_HOUR);
-					Serial.println(("Time Updated\r\n"));
-					return;
-				}
+			DEBUG.println("Update timestamp");
+			String strTimeStamp;
+			strTimeStamp = http_request("gith.cf", 80, "/timestamp");
+			int ln = strTimeStamp.indexOf("\r\n");
+			if (ln > -1) {
+				strTimeStamp = strTimeStamp.substring(ln + 2);
+			}
+			DEBUG.println(strTimeStamp);
+			strTimeStamp.trim();
+			long ts = strTimeStamp.toInt();
+			if (ts > 1000000000) {
+				t_pre_update = millis();
+				wasSync = true;
+				setTime(ts);
+				adjustTime(7 * SECS_PER_HOUR);
+				DEBUG.println(("Time Updated "));
+				DEBUG.println(ts);
+				DEBUG.println();
+				return;
 			}
 		}
 
 		String strTimeStamp = http_request("mic.duytan.edu.vn", 88, "/api/GetUnixTime");
-		Serial.println(strTimeStamp);
+		DEBUG.println(strTimeStamp);
 		DynamicJsonBuffer timestamp(500);
 		JsonObject& jsTimeStamp = timestamp.parseObject(strTimeStamp);
 		if (jsTimeStamp.success()) {
@@ -245,7 +249,7 @@ void updateTimeStamp(unsigned long interval = 0) {
 				wasSync = true;
 				setTime(ts);
 				adjustTime(7 * SECS_PER_HOUR);
-				Serial.println(("Time Updated\r\n"));
+				DEBUG.println(("Time Updated\r\n"));
 				return;
 			}
 		}
@@ -526,25 +530,26 @@ void auto_control() {
 }
 
 void updateFirmware(String url) {
-	//ESPhttpUpdate.rebootOnUpdate(true);
-	//
-	//t_httpUpdate_return ret = ESPhttpUpdate.update(url);
-	//
-	//switch (ret) {
-	//case HTTP_UPDATE_FAILED:
-	//	DEBUG.printf("HTTP_UPDATE_FAILD Error (%d): %s\r\n", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
-	//	break;
-	//
-	//case HTTP_UPDATE_NO_UPDATES:
-	//	DEBUG.println(("HTTP_UPDATE_NO_UPDATES"));
-	//	break;
-	//
-	//case HTTP_UPDATE_OK:
-	//	DEBUG.println(("HTTP_UPDATE_OK"));
-	//	delay(2000);
-	//	ESP.restart();
-	//	break;
-	//}
+	ESPhttpUpdate.rebootOnUpdate(true);
+
+	if ((WiFi.status() == WL_CONNECTED)) {
+
+		t_httpUpdate_return ret = ESPhttpUpdate.update(url);
+
+		switch (ret) {
+		case HTTP_UPDATE_FAILED:
+			DEBUG.printf("HTTP_UPDATE_FAILD Error (%d): %s", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
+			break;
+
+		case HTTP_UPDATE_NO_UPDATES:
+			DEBUG.println("HTTP_UPDATE_NO_UPDATES");
+			break;
+
+		case HTTP_UPDATE_OK:
+			DEBUG.println("HTTP_UPDATE_OK");
+			break;
+		}
+	}
 }
 
 void serial_command_handle() {

@@ -179,7 +179,7 @@ void mqtt_callback(char* topic, uint8_t* payload, unsigned int length) {
 		/*
 		{
 		   "Command" : "FOTA",
-		   "HUB_ID" : "all",
+		   "HUB_ID" : "17C80",
 		   "Version" : "",
 		   "Url" : ""
 		}
