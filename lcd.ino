@@ -21,16 +21,33 @@ String getTimeStr() {
 }
 void lcd_print_time() {
 	lcd.setCursor(6, 1);
-	lcd.print(getTimeStr());
+	if (now() > 1000000000) {
+		lcd.print(getTimeStr());
+	}
+	else {
+		lcd.print("Starting");
+	}
+	//if ((hour() > 6 && hour() < 18)) {
+	//	if (lcd_backlight) {
+	//		lcd_backlight = false;
+	//		lcd.noBacklight();
+	//	}
+	//}
+	//else {
+	//	if (!lcd_backlight) {
+	//		lcd_backlight = true;
+	//		lcd.backlight();
+	//	}
+	//}
 }
 
-void lcd_print_sensor(float temp, float humi) {
-	//char lineData[20] = { 0 };
-	//sprintf(lineData, "TEMP: %4d   HUMI: %4d", temp, humi);
-	//sprintf(lineData, "TEMP: %4.2f    HUMI: %4.2f", temp, humi);
-
-	lcd.setCursor(6, 2);
-	lcd.print("TEMP: " + String(temp, 0));
-	lcd.setCursor(6, 3);
-	lcd.print("TEMP: " + String(humi, 0));
+void lcd_print_sensor(float temp, float humi, int light) {
+	lcd.setCursor(0, 2);
+	lcd.print("TEMP    HUMI   LIGHT");
+	lcd.setCursor(1, 3);
+	lcd.print(int(temp));
+	lcd.setCursor(9, 3);
+	lcd.print(int(humi));
+	lcd.setCursor(16, 3);
+	lcd.print(light);
 }

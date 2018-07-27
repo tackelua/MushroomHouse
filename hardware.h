@@ -50,6 +50,7 @@ extern bool stt_fan_mix;
 extern bool stt_fan_wind;
 extern bool stt_light;
 extern bool stt_led;
+extern bool stt_lcd_backlight;
 
 extern String HubID;
 extern Button myBtn;

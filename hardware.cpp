@@ -6,7 +6,8 @@ bool stt_pump_floor = OFF;
 bool stt_fan_mix = OFF;
 bool stt_fan_wind = OFF;
 bool stt_light = OFF;
-bool stt_led = HIGH;
+bool stt_led = ON;
+bool stt_lcd_backlight = ON;
 
 Button myBtn(BUTTON, true, true, 20);
 
