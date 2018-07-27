@@ -41,7 +41,7 @@ void handleTopic__Mushroom_Commands_HubID() {
 	JsonObject& commands = jsonBuffer.parseObject(mqtt_Message);
 
 	String HUB_ID = commands["HUB_ID"].as<String>();
-	bool pump1_change = false;
+	bool pump_mix_change = false;
 	bool fan_change = false;
 	bool light_change = false;
 
@@ -62,19 +62,19 @@ void handleTopic__Mushroom_Commands_HubID() {
 	else {
 		isCommandFromApp = true;
 	}
-	String pump1_stt = commands["MIST"].as<String>();
-	extern bool skip_auto_pump1;
-	if (pump1_stt == on_)
+	String pump_mix_stt = commands["MIST"].as<String>();
+	extern bool skip_auto_pump_mix;
+	if (pump_mix_stt == on_)
 	{
-		skip_auto_pump1 = true;
-		pump1_change = control(PUMP_MIX, true, false, isCommandFromApp);
-		pump1_change = control(PUMP_FLOOR, true, false, isCommandFromApp);
+		skip_auto_pump_mix = true;
+		pump_mix_change = control(PUMP_MIX, true, false, isCommandFromApp);
+		pump_mix_change = control(PUMP_FLOOR, true, false, isCommandFromApp);
 	}
-	else if (pump1_stt == off_)
+	else if (pump_mix_stt == off_)
 	{
-		skip_auto_pump1 = true;
-		pump1_change = control(PUMP_MIX, false, false, isCommandFromApp);
-		pump1_change = control(PUMP_FLOOR, false, false, isCommandFromApp);
+		skip_auto_pump_mix = true;
+		pump_mix_change = control(PUMP_MIX, false, false, isCommandFromApp);
+		pump_mix_change = control(PUMP_FLOOR, false, false, isCommandFromApp);
 	}
 
 	String light_stt = commands["LIGHT"].as<String>();
@@ -90,16 +90,16 @@ void handleTopic__Mushroom_Commands_HubID() {
 		light_change = control(LIGHT, false, false, isCommandFromApp);
 	}
 
-	String fan_stt = commands["FAN_MIX"].as<String>();
-	extern bool skip_auto_fan;
+	String fan_stt = commands["FAN"].as<String>();
+	extern bool skip_auto_fan_mix;
 	if (fan_stt == on_)
 	{
-		skip_auto_fan = true;
+		skip_auto_fan_mix = true;
 		fan_change = control(FAN_MIX, true, false, isCommandFromApp);
 	}
 	else if (fan_stt == off_)
 	{
-		skip_auto_fan = true;
+		skip_auto_fan_mix = true;
 		fan_change = control(FAN_MIX, false, false, isCommandFromApp);
 	}
 
@@ -162,7 +162,7 @@ void mqtt_callback(char* topic, uint8_t* payload, unsigned int length) {
 
 	DEBUG.println(mqtt_Message);
 
-	//control pump1, light, fan
+	//control pump_mix, light, fan
 	if (topicStr == String("Mushroom/Commands/" + HubID))
 	{
 		handleTopic__Mushroom_Commands_HubID();
@@ -177,19 +177,22 @@ void mqtt_callback(char* topic, uint8_t* payload, unsigned int length) {
 		JsonObject& terminal = jsonBuffer.parseObject(mqtt_Message);
 		/*
 		{
-		   "Command" : "FOTA",
-		   "HUB_ID" : "17C80",
-		   "Version" : "",
-		   "Url" : ""
+			"Command" : "FOTA",
+			"Hub_ID" : "17C80",
+			"Version" : "",
+			"Url" : "http://autominer.xyz/files/MushroomHouse.bin"
 		}
 		*/
 		DEBUG.println(("Update firmware function"));
 		String command = terminal["Command"].as<String>();
 		if (command == "FOTA") {
+			DEBUG.println("Thoa man dieu kien command");
 			String hub = terminal["Hub_ID"].as<String>();
 			if ((hub == HubID) || (hub == "all")) {
+				DEBUG.println("Thoa man dieu kien HubID");
 				String ver = terminal["Version"].as<String>();
 				if (ver != _firmwareVersion) {
+					DEBUG.println("Thoa man dieu kien version");
 					String url = terminal["Url"].as<String>();
 					mqtt_publish("Mushroom/Terminal/" + HubID, "Updating new firmware " + ver);
 					DEBUG.print(("\nUpdating new firmware: "));

@@ -21,10 +21,10 @@
 #define RELAY8			34
 
 #define PUMP_MIX		RELAY1 //Phun sương
-#define PUMP_FLOOR		RELAY2 //Phun ẩm sàn nhà
-#define FAN_MIX			RELAY3 //Quạt đối lưu
-#define FAN_WIND		RELAY4 //Quạt thông gió
-#define	LIGHT			RELAY5 //Đèn chiếu sáng
+#define	LIGHT			RELAY2 //Đèn chiếu sáng
+#define FAN_MIX			RELAY4 //Quạt đối lưu
+#define PUMP_FLOOR		RELAY6 //Phun ẩm sàn nhà
+#define FAN_WIND		RELAY3 //Quạt thông gió
 
 #define LED_STT			23
 #define BUTTON			16 //RX2
