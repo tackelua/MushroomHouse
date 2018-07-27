@@ -17,14 +17,14 @@
 #include <Ticker.h>
 #include <WiFiManager.h>
 
-#define __VERSION__  "3.1.5"
+#define __VERSION__  "3.1.6"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
+String HubID;
+
 void updateTimeStamp(unsigned long interval);
 bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp);
-
-String HubID;
 
 
 bool flag_SmartConfig = false;

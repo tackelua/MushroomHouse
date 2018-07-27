@@ -284,8 +284,8 @@ void updateTimeStamp(unsigned long interval = 0) {
 }
 
 //====================================================================
-float temp;
-float humi;
+int temp;
+int humi;
 int light;
 void update_sensor(unsigned long period) {
 	//check waterEmpty nếu thay đổi thì update ngay lập tức
@@ -313,18 +313,18 @@ void update_sensor(unsigned long period) {
 		//
 		light = readLight();
 
-		temp = abs(temp) > 200.0 ? -1 : temp;
-		humi = abs(humi) > 200.0 ? -1 : humi;
-		light = light == 64575 ? -1 : light;
+		temp = (temp > 100 || temp < 0) ? -1 : temp;
+		humi = (humi > 100 || humi < 0) ? -1 : humi;
+		light = light > 10000 ? -1 : light;
 
 		lcd_print_sensor(temp, humi, light);
 
 		StaticJsonBuffer<200> jsBuffer;
 		JsonObject& jsData = jsBuffer.createObject();
 		jsData["HUB_ID"] = HubID;
-		jsData["TEMP"] = (abs(temp) > 200.0 ? -1 : (int)temp);
-		jsData["HUMI"] = (abs(humi) > 200.0 ? -1 : (int)humi);
-		jsData["LIGHT"] = light == 1024 ? -1 : light;
+		jsData["TEMP"] = temp;
+		jsData["HUMI"] = humi;
+		jsData["LIGHT"] = light;
 
 		bool waterEmpty = digitalRead(SS_WATER_LOW);
 		jsData["WATER_EMPTY"] = waterEmpty ? "YES" : "NO";
@@ -562,13 +562,13 @@ void auto_control() {
 
 	//c. Bật tắt quạt
 	//Bật quạt FAN_MIX mỗi 20 phút
-	if (!skip_auto_fan_mix && ((millis() - t_fan_mix_change) < (20 * 1000 * SECS_PER_MIN)) && !stt_fan_mix) {
+	if (!skip_auto_fan_mix && ((millis() - t_fan_mix_change) > (20 * 1000 * SECS_PER_MIN)) && !stt_fan_mix) {
 		DEBUG.println("AUTO FAN_MIX ON");
 		control(FAN_MIX, true, true, false);
 	}
 
 	//FAN_WIND bật nếu thỏa điều kiện, mỗi lần check cách nhau 30 phút
-	if (!skip_auto_fan_wind && library && (((int)humi > HUMI_MAX) || ((int)temp > TEMP_MAX)) && ((millis() - t_fan_wind_change) < (30 * 1000 * SECS_PER_MIN)) && !stt_fan_wind) {
+	if (!skip_auto_fan_wind && library && (((int)humi > HUMI_MAX) || ((int)temp > TEMP_MAX)) && ((millis() - t_fan_wind_change) > (30 * 1000 * SECS_PER_MIN)) && !stt_fan_wind) {
 		DEBUG.println("AUTO FAN_WIND ON");
 		control(FAN_WIND, true, true, false);
 	}
