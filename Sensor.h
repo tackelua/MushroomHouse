@@ -10,6 +10,9 @@
 #endif
 
 #include <SHT1x.h>
+#include "BH1750.h"
+
+#define BH1750_ADDRESS 	0x23
 
 float readTemp1();
 float readHumi1();

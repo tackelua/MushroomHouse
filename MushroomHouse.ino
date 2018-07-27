@@ -17,7 +17,7 @@
 #include <Ticker.h>
 #include <WiFiManager.h>
 
-#define __VERSION__  "3.1.3"
+#define __VERSION__  "3.1.4"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 

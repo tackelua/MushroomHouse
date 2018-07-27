@@ -9,6 +9,7 @@
 static SHT1x sht1(SHT1_DAT, SHT1_DAT);
 static SHT1x sht2(SHT2_DAT, SHT2_DAT);
 
+
 float readTemp1() {
 	ulong t = millis();
 	float temp = sht1.readTemperatureC(); //change waitForResultSHT loop from 100 times to 10 times
@@ -54,7 +55,5 @@ float readHumi2() {
 }
 
 int readLight() {
-	int l = analogRead(SS_LIGHT);
-	return (l == 1024 ? -1.0f : l);
-
+	return BH1750.BH1750_Read(BH1750_ADDRESS);
 }

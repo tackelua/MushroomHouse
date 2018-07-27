@@ -1,4 +1,5 @@
 #include "hardware.h"
+#include "Sensor.h"
 
 bool stt_pump_mix = OFF;
 bool stt_pump_floor = OFF;
@@ -18,7 +19,7 @@ void hardware_init() {
 	pinMode(LIGHT, OUTPUT);
 	pinMode(LED_STT, OUTPUT);
 
-	pinMode(SS_LIGHT, INPUT);
+	//pinMode(SS_LIGHT, INPUT);
 
 	out(PUMP_MIX, OFF);
 	out(PUMP_FLOOR, OFF);
@@ -26,6 +27,8 @@ void hardware_init() {
 	out(FAN_WIND, OFF);
 	out(LIGHT, OFF);
 	out(LED_STT, ON);
+
+	BH1750.INIT(BH1750_ADDRESS);
 }
 String getMacAddress() {
 	uint8_t baseMac[6];
