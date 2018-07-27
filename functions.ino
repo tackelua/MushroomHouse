@@ -343,6 +343,8 @@ void update_sensor(unsigned long period) {
 		data.reserve(120);
 		jsData.printTo(data);
 		mqtt_publish(("Mushroom/Sensor/" + HubID), data, true);
+
+		thingspeak_update(temp, humi, light);
 	}
 }
 

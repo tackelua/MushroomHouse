@@ -23,11 +23,12 @@ float readTemp1() {
 
 }
 float readHumi1() {
+	ulong t = millis();
 	float h = sht1.readHumidity();
 	DEBUG.print(("Read Humi 1: "));
 	DEBUG.print(String(h, 2));
 	DEBUG.print(" in ");
-	DEBUG.print(String(millis() - h));
+	DEBUG.print(String(millis() - t));
 	DEBUG.println(("ms"));
 	return (h < 0.01f ? -1.0f : h);
 }
@@ -45,11 +46,12 @@ float readTemp2() {
 
 }
 float readHumi2() {
+	ulong t = millis();
 	float h = sht2.readHumidity();
 	DEBUG.print(("Read Humi 2: "));
 	DEBUG.print(String(h, 2));
 	DEBUG.print(" in ");
-	DEBUG.print(String(millis() - h));
+	DEBUG.print(String(millis() - t));
 	DEBUG.println(("ms"));
 	return (h < 0.01f ? -1.0f : h);
 }

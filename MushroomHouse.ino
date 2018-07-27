@@ -16,8 +16,9 @@
 #include <LiquidCrystal_I2C.h>
 #include <Ticker.h>
 #include <WiFiManager.h>
+#include <ThingSpeak.h>
 
-#define __VERSION__  "3.1.6"
+#define __VERSION__  "3.1.7"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
@@ -51,7 +52,7 @@ void setup()
 
 	updateTimeStamp(0);
 	mqtt_init();
-
+	ThingSpeak_init();
 }
 
 void loop()
