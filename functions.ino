@@ -571,7 +571,7 @@ void auto_control() {
 
 	//c. Bật tắt quạt
 	//Bật quạt FAN_MIX mỗi 20 phút
-	if (!skip_auto_fan_mix && ((millis() - t_fan_mix_change) > (20 * 1000 * SECS_PER_MIN)) && !stt_fan_mix) {
+	if (!skip_auto_fan_mix && ((millis() - t_fan_mix_change) > (15 * 1000 * SECS_PER_MIN)) && !stt_fan_mix) {
 		DEBUG.println("AUTO FAN_MIX ON");
 		control(FAN_MIX, true, true, false);
 	}

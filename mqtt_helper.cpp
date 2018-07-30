@@ -96,11 +96,13 @@ void handleTopic__Mushroom_Commands_HubID() {
 	{
 		skip_auto_fan_mix = true;
 		fan_change = control(FAN_MIX, true, false, isCommandFromApp);
+		control(FAN_WIND, true, false, isCommandFromApp);
 	}
 	else if (fan_stt == off_)
 	{
 		skip_auto_fan_mix = true;
 		fan_change = control(FAN_MIX, false, false, isCommandFromApp);
+		control(FAN_WIND, false, false, isCommandFromApp);
 	}
 
 	if (isCommandFromApp) {

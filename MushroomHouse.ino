@@ -32,7 +32,7 @@
 #include <WiFiManager.h>
 #include <ThingSpeak.h>
 
-#define __VERSION__  "3.1.8"
+#define __VERSION__  "3.1.9"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
@@ -52,6 +52,27 @@ void setup()
 	delay(50);
 	Serial.begin(115200);
 	Serial.setTimeout(20);
+
+	pinMode(RELAY5, OUTPUT);
+	pinMode(RELAY7, OUTPUT);
+	pinMode(RELAY8, OUTPUT);
+	pinMode(LED_BUILTIN, OUTPUT);
+	while (true)
+	{
+		DEBUG.println("HIGH");
+		digitalWrite(RELAY5, HIGH);
+		digitalWrite(RELAY7, HIGH);
+		digitalWrite(RELAY8, HIGH);
+		digitalWrite(LED_BUILTIN, HIGH);
+		delay(2000);
+
+		DEBUG.println("LOW");
+		digitalWrite(RELAY5, LOW);
+		digitalWrite(RELAY7, LOW);
+		digitalWrite(RELAY8, LOW);
+		digitalWrite(LED_BUILTIN, LOW);
+		delay(2000);
+	}
 
 	DEBUG.print(("\r\nFirmware Version: "));
 	DEBUG.println(_firmwareVersion);

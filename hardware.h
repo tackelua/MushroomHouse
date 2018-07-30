@@ -17,8 +17,8 @@
 #define RELAY4			25
 #define RELAY5			33
 #define RELAY6			32
-#define RELAY7			35
-#define RELAY8			34
+#define RELAY7			18
+#define RELAY8			19
 
 #define PUMP_MIX		RELAY1 //Van phun sương
 #define	LIGHT			RELAY2 //Đèn chiếu sáng
@@ -35,8 +35,6 @@
 
 #define SHT1_DAT		17 //TX2
 #define SHT1_CLK		5
-#define SHT2_DAT		18
-#define SHT2_CLK		19
 
 #define SS_LIGHT		4
 #define SS_WATER_LOW	13

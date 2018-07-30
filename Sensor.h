@@ -16,8 +16,6 @@
 
 float readTemp1();
 float readHumi1();
-float readTemp2();
-float readHumi2();
 int readLight();
 #endif
 
