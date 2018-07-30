@@ -6,7 +6,7 @@
 #include <SHT1x.h>
 #include "hardware.h"
 
-static SHT1x sht1(SHT1_DAT, SHT1_DAT);
+static SHT1x sht1(SHT1_DAT, SHT1_CLK);
 
 
 float readTemp1() {
@@ -19,7 +19,6 @@ float readTemp1() {
 	DEBUG.print(String(millis() - t));
 	DEBUG.println(("ms"));
 	return (temp < 0.01f ? -1.0f : temp);
-
 }
 float readHumi1() {
 	ulong t = millis();
