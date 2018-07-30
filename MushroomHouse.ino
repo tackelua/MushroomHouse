@@ -1,4 +1,18 @@
 
+#include <Adafruit_Sensor.h>
+#include <DHT_U.h>
+#include <DHT.h>
+#include <DNSServer.h>
+#include <WebServer.h>
+#include <ESP8266WebServer.h>
+#include <SPIFFS.h>
+#include <vfs_api.h>
+#include <FSImpl.h>
+#include <FS.h>
+#include <Update.h>
+#include <WiFiClientSecure.h>
+#include <ssl_client.h>
+#include <HTTPClient.h>
 #include <WiFi.h>
 #include <WiFiMulti.h>
 #include <TimeLib.h>
@@ -18,7 +32,7 @@
 #include <WiFiManager.h>
 #include <ThingSpeak.h>
 
-#define __VERSION__  "3.1.7"
+#define __VERSION__  "3.1.8"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 

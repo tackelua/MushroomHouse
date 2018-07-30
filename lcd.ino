@@ -42,8 +42,12 @@ void lcd_print_time() {
 }
 
 void lcd_print_sensor(float temp, float humi, int light) {
-	lcd.setCursor(0, 2);
-	lcd.print("TEMP    HUMI   LIGHT");
+	static bool frame = false;
+	if (!frame) {
+		frame = true;
+		lcd.setCursor(0, 2);
+		lcd.print("TEMP    HUMI   LIGHT");
+	}
 	lcd.setCursor(1, 3);
 	lcd.print(int(temp));
 	lcd.setCursor(9, 3);

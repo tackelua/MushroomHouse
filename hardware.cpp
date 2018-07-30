@@ -13,6 +13,7 @@ Button myBtn(BUTTON, true, true, 20);
 
 extern void out(int pin, bool status);
 void hardware_init() {
+	pinMode(PUMP_BOTH, OUTPUT);
 	pinMode(PUMP_MIX, OUTPUT);
 	pinMode(PUMP_FLOOR, OUTPUT);
 	pinMode(FAN_MIX, OUTPUT);

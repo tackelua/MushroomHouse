@@ -6,6 +6,7 @@ unsigned long t_light_change;
 unsigned long t_lcd_backlight_change;
 String CMD_ID = "         ";
 
+extern LiquidCrystal_I2C lcd;
 
 #pragma region functions
 
@@ -274,6 +275,10 @@ void updateTimeStamp(unsigned long interval = 0) {
 	}
 	else {
 		if ((millis() - t_pre_update) > interval) {
+			lcd_init();
+			lcd.setCursor(0, 2);
+			lcd.print("TEMP    HUMI   LIGHT");
+
 			updateTimeStamp();
 		}
 	}
@@ -348,14 +353,20 @@ void update_sensor(unsigned long period) {
 	}
 }
 
-extern LiquidCrystal_I2C lcd;
 void out(int pin, bool status) {
+	if (pin == LED_STT) {
+		stt_led = status;
+	}
+	digitalWrite(pin, status);
+
 	switch (pin)
 	{
 	case PUMP_MIX:
+		digitalWrite(PUMP_BOTH, status);
 		DEBUG.print("PUMP_MIX: ");
 		DEBUG.println(status ? "ON" : "OFF");
 	case PUMP_FLOOR:
+		digitalWrite(PUMP_BOTH, status);
 		DEBUG.print("PUMP_FLOOR: ");
 		DEBUG.println(status ? "ON" : "OFF");
 	case FAN_MIX:
@@ -371,10 +382,6 @@ void out(int pin, bool status) {
 	default:
 		break;
 	}
-	if (pin == LED_STT) {
-		stt_led = status;
-	}
-	digitalWrite(pin, status);
 
 	t_lcd_backlight_change = millis();
 	stt_lcd_backlight = true;
