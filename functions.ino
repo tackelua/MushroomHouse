@@ -289,22 +289,50 @@ void updateTimeStamp(unsigned long interval = 0) {
 }
 
 //====================================================================
+extern bool stt_alarm;
+void warming_alarm() {
+	bool flag_update_now = false;
+	static bool waterEmpty_pre = false;
+	static bool waterEmpty;
+	waterEmpty = digitalRead(SS_WATER_LOW);
+
+	if (waterEmpty) {
+		static unsigned long t = millis();
+		if (stt_alarm && (millis() - t > 3000)) {
+			t = millis();
+			stt_alarm = false;
+			digitalWrite(ALARM_SIRENS, stt_alarm);
+		}
+		if (!stt_alarm && (millis() - t > 10000)) {
+			t = millis();
+			stt_alarm = true;
+			digitalWrite(ALARM_SIRENS, stt_alarm);
+		}
+	}
+	else {
+		if (stt_alarm) {
+			stt_alarm = false;
+			digitalWrite(ALARM_SIRENS, stt_alarm);
+		}
+	}
+}
 int temp;
 int humi;
 int light;
 void update_sensor(unsigned long period) {
 	//check waterEmpty nếu thay đổi thì update ngay lập tức
-	static bool waterEmpty_old = false;
-	static bool waterEmpty_new;
-	waterEmpty_new = !digitalRead(SS_WATER_LOW);
-	if (waterEmpty_new != waterEmpty_old) {
-		waterEmpty_old = waterEmpty_new;
-		update_sensor(0);
+	bool flag_update_now = false;
+	static bool waterEmpty_pre = false;
+	static bool waterEmpty;
+	waterEmpty = digitalRead(SS_WATER_LOW);
+	if (waterEmpty != waterEmpty_pre) {
+		waterEmpty_pre = waterEmpty;
+		flag_update_now = true;
 	}
 
 	//update sensors data to server every period milli seconds
 	static unsigned long preMillis = millis() - period - 1;
-	if ((millis() - preMillis) > period) {
+	if (flag_update_now || (millis() - preMillis) > period) {
 		preMillis = millis();
 		temp = readTemp1();
 		//
@@ -318,9 +346,11 @@ void update_sensor(unsigned long period) {
 		//
 		light = readLight();
 
+		unsigned long t_read_sensors = millis() - preMillis;
+
 		temp = (temp > 100 || temp < 0) ? -1 : temp;
 		humi = (humi > 100 || humi < 0) ? -1 : humi;
-		light = light > 10000 ? -1 : light;
+		light = light > 20000 ? -1 : light;
 
 		lcd_print_sensor(temp, humi, light);
 
@@ -330,8 +360,6 @@ void update_sensor(unsigned long period) {
 		jsData["TEMP"] = temp;
 		jsData["HUMI"] = humi;
 		jsData["LIGHT"] = light;
-
-		bool waterEmpty = digitalRead(SS_WATER_LOW);
 		jsData["WATER_EMPTY"] = waterEmpty ? "YES" : "NO";
 
 		int dBm = WiFi.RSSI();
@@ -350,6 +378,10 @@ void update_sensor(unsigned long period) {
 		mqtt_publish(("Mushroom/Sensor/" + HubID), data, true);
 
 		thingspeak_update(temp, humi, light);
+
+
+		DEBUG.println("Update sensor takes " + String(t_read_sensors) + "ms");
+		mqtt_publish("DEBUG/" + HubID, "Time Read Sensor : " + String(t_read_sensors));
 	}
 }
 
@@ -586,6 +618,11 @@ void auto_control() {
 }
 
 void updateFirmware(String url) {
+	lcd.begin(LCD_SDA, LCD_SCL);
+	lcd.setCursor(3, 0);
+	lcd.print("MUSHROOM-" + HubID);
+	lcd.setCursor(1, 2);
+	lcd.print("FIRMWARE UPDATING");
 	ESPhttpUpdate.rebootOnUpdate(true);
 
 	if ((WiFi.status() == WL_CONNECTED)) {

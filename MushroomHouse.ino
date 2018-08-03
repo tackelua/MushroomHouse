@@ -27,12 +27,12 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <ESP32httpUpdate.h>
-#include <LiquidCrystal_I2C.h>
+#include <esp32-lcd/LiquidCrystal_I2C.h>
 #include <Ticker.h>
 #include <WiFiManager.h>
 #include <ThingSpeak.h>
 
-#define __VERSION__  "3.1.10"
+#define __VERSION__  "3.1.12"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
@@ -45,6 +45,7 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 bool flag_SmartConfig = false;
 bool flag_error_wifi = false;
 bool flag_water_empty = false;
+bool flag_print_time = false;
 
 
 void setup()
@@ -57,8 +58,31 @@ void setup()
 	DEBUG.println(_firmwareVersion);
 
 	HubID = getMacAddress();
-	lcd_init();
 	hardware_init();
+	lcd_init();
+
+	//pinMode(LED_BUILTIN, OUTPUT);
+	//while (true) {
+	//	digitalWrite(RELAY1, ON);
+	//	digitalWrite(RELAY2, ON);
+	//	digitalWrite(RELAY3, ON);
+	//	digitalWrite(RELAY4, ON);
+	//	digitalWrite(RELAY5, ON);
+	//	digitalWrite(RELAY6, ON);
+	//	digitalWrite(RELAY7, ON);
+	//	digitalWrite(LED_BUILTIN, ON);
+	//	delay(1500);
+	//
+	//	digitalWrite(RELAY1, OFF);
+	//	digitalWrite(RELAY2, OFF);
+	//	digitalWrite(RELAY3, OFF);
+	//	digitalWrite(RELAY4, OFF);
+	//	digitalWrite(RELAY5, OFF);
+	//	digitalWrite(RELAY6, OFF);
+	//	digitalWrite(RELAY7, OFF);
+	//	digitalWrite(LED_BUILTIN, OFF);
+	//	delay(1000);
+	//}
 
 	wifi_init();
 	out(LED_STT, OFF);
@@ -77,7 +101,19 @@ void loop()
 	mqtt_loop();
 	serial_command_handle();
 	button_handle();
-	update_sensor(5000);
+	warming_alarm();
+	update_sensor(10000);
 	auto_control();
+
+	if (flag_print_time) {
+		lcd_print_time();
+	}
+	{
+		static unsigned long t = millis();
+		if (millis() - t > 60000) {
+			t = millis();
+			lcd_init();
+		}
+	}
 }
 

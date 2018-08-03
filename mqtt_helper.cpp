@@ -7,6 +7,7 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include "hardware.h"
+#include <LiquidCrystal_I2C.h>
 
 extern String HubID;
 extern String _firmwareVersion;
@@ -108,6 +109,21 @@ void handleTopic__Mushroom_Commands_HubID() {
 	if (isCommandFromApp) {
 		send_status_to_server();
 	}
+
+	//reset lcd after control
+	//{
+	//	extern LiquidCrystal_I2C lcd;
+	//	extern void lcd_generate_frame(float temp, float humi, int light);
+	//	extern int temp;
+	//	extern int humi;
+	//	extern int light;
+	//	static unsigned long t = millis();
+	//	if (millis() - t > 10000) {
+	//		t = millis();
+	//		lcd.begin(LCD_SDA, LCD_SCL);
+	//		lcd_generate_frame(temp, humi, light);
+	//	}
+	//}
 }
 
 void handleTopic__Mushroom_Library_HubID() {

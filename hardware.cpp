@@ -6,6 +6,7 @@ bool stt_pump_floor = OFF;
 bool stt_fan_mix = OFF;
 bool stt_fan_wind = OFF;
 bool stt_light = OFF;
+bool stt_alarm = OFF;
 bool stt_led = ON;
 bool stt_lcd_backlight = ON;
 
@@ -13,12 +14,14 @@ Button myBtn(BUTTON, true, true, 20);
 
 extern void out(int pin, bool status);
 void hardware_init() {
+	//gpio_pad_select_gpio(RELAY7);
 	pinMode(PUMP_BOTH, OUTPUT);
 	pinMode(PUMP_MIX, OUTPUT);
 	pinMode(PUMP_FLOOR, OUTPUT);
 	pinMode(FAN_MIX, OUTPUT);
 	pinMode(FAN_WIND, OUTPUT);
 	pinMode(LIGHT, OUTPUT);
+	pinMode(ALARM_SIRENS, OUTPUT);
 	pinMode(LED_STT, OUTPUT);
 
 	//pinMode(SS_LIGHT, INPUT);
@@ -28,6 +31,7 @@ void hardware_init() {
 	out(FAN_MIX, OFF);
 	out(FAN_WIND, OFF);
 	out(LIGHT, OFF);
+	out(ALARM_SIRENS, OFF);
 	out(LED_STT, ON);
 
 	BH1750.INIT(BH1750_ADDRESS);
