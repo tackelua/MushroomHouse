@@ -7,6 +7,7 @@ unsigned long t_lcd_backlight_change;
 String CMD_ID = "         ";
 
 extern LiquidCrystal_I2C lcd;
+extern PubSubClient mqtt_client;
 
 #pragma region functions
 
@@ -136,6 +137,13 @@ void wifi_init() {
 }
 
 void wifi_loop() {
+	if (WiFi.isConnected() == false || mqtt_client.connected() == false) {
+		flag_lcd_line_0 = NOTI_CONNECTION_LOST;
+	}
+	else {
+		flag_lcd_line_0 = SHOW_HUBID;
+	}
+
 	if (WiFi.isConnected() == false) {
 		DEBUG.println(("\nWiFi attempting to connect..."));
 		if (WiFi.waitForConnectResult() == WL_CONNECTED) {
@@ -153,7 +161,6 @@ void wifi_loop() {
 	}
 }
 
-extern PubSubClient mqtt_client;
 void led_loop() {
 	if (!mqtt_client.connected()) { //loi ket noi den server
 		static unsigned long t = millis();
@@ -276,8 +283,6 @@ void updateTimeStamp(unsigned long interval = 0) {
 	else {
 		if ((millis() - t_pre_update) > interval) {
 			lcd_init();
-			lcd.setCursor(0, 2);
-			lcd.print("TEMP    HUMI   LIGHT");
 
 			updateTimeStamp();
 		}
@@ -291,13 +296,13 @@ void updateTimeStamp(unsigned long interval = 0) {
 //====================================================================
 extern bool stt_alarm;
 void warming_alarm() {
-	bool flag_update_now = false;
 	static bool waterEmpty_pre = false;
 	static bool waterEmpty;
 	waterEmpty = digitalRead(SS_WATER_LOW);
 
 	if (waterEmpty) {
-		static unsigned long t = millis();
+		flag_lcd_line_0 = NOTI_WATER_EMPTY;
+		static unsigned long t = millis() - 15000;
 		if (stt_alarm && (millis() - t > 3000)) {
 			t = millis();
 			stt_alarm = false;
@@ -315,6 +320,7 @@ void warming_alarm() {
 			digitalWrite(ALARM_SIRENS, stt_alarm);
 		}
 	}
+	lcd_show_line_0();
 }
 int temp;
 int humi;
@@ -334,17 +340,22 @@ void update_sensor(unsigned long period) {
 	static unsigned long preMillis = millis() - period - 1;
 	if (flag_update_now || (millis() - preMillis) > period) {
 		preMillis = millis();
-		temp = readTemp1();
+		float ftemp, fhumi, flight;
+		ftemp = readTemp1();
 		//
 		//mqtt_loop();
 		//serial_command_handle();
 		//
-		humi = readHumi1();
+		fhumi = readHumi1();
 		//
 		//mqtt_loop();
 		//serial_command_handle();
 		//
-		light = readLight();
+		flight = readLight();
+
+		temp = ftemp;
+		humi = fhumi;
+		light = flight;
 
 		unsigned long t_read_sensors = millis() - preMillis;
 
@@ -377,7 +388,7 @@ void update_sensor(unsigned long period) {
 		jsData.printTo(data);
 		mqtt_publish(("Mushroom/Sensor/" + HubID), data, true);
 
-		thingspeak_update(temp, humi, light);
+		thingspeak_update(ftemp, fhumi, flight);
 
 
 		DEBUG.println("Update sensor takes " + String(t_read_sensors) + "ms");
@@ -622,7 +633,7 @@ void updateFirmware(String url) {
 	lcd.setCursor(3, 0);
 	lcd.print("MUSHROOM-" + HubID);
 	lcd.setCursor(1, 2);
-	lcd.print("FIRMWARE UPDATING");
+	lcd.print("FIRMWARE  UPDATING");
 	ESPhttpUpdate.rebootOnUpdate(true);
 
 	if ((WiFi.status() == WL_CONNECTED)) {

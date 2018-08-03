@@ -3,7 +3,7 @@
 
 bool BH1750Class:: INIT(int address)
 {
-	Wire.begin();
+	Wire.begin(SDA, SCL);
 	Wire.beginTransmission(address);
 	Wire.write(0x10); // 1 [lux] aufloesung
 	Wire.endTransmission();

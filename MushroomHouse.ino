@@ -32,7 +32,7 @@
 #include <WiFiManager.h>
 #include <ThingSpeak.h>
 
-#define __VERSION__  "3.1.12"
+#define __VERSION__  "3.1.13"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
@@ -42,10 +42,16 @@ void updateTimeStamp(unsigned long interval);
 bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp);
 
 
+enum lcd_line_0 {
+	SHOW_HUBID= 0,
+	NOTI_CONNECTION_LOST,
+	NOTI_WATER_EMPTY
+};
 bool flag_SmartConfig = false;
 bool flag_error_wifi = false;
 bool flag_water_empty = false;
 bool flag_print_time = false;
+int flag_lcd_line_0 = SHOW_HUBID;
 
 
 void setup()
@@ -96,7 +102,7 @@ void setup()
 void loop()
 {
 	wifi_loop();
-	led_loop();
+	led_loop(); 
 	updateTimeStamp(3600000);
 	mqtt_loop();
 	serial_command_handle();
@@ -104,16 +110,5 @@ void loop()
 	warming_alarm();
 	update_sensor(10000);
 	auto_control();
-
-	if (flag_print_time) {
-		lcd_print_time();
-	}
-	{
-		static unsigned long t = millis();
-		if (millis() - t > 60000) {
-			t = millis();
-			lcd_init();
-		}
-	}
 }
 

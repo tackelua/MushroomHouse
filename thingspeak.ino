@@ -6,7 +6,7 @@ WiFiClient  thingspkeak_client;
 void ThingSpeak_init() {
 	ThingSpeak.begin(thingspkeak_client);
 }
-void thingspeak_update(int temp, int humi, int light) {
+void thingspeak_update(float temp, float humi, float light) {
 	bool write = false;
 	if (temp != -1) {
 		write = true;

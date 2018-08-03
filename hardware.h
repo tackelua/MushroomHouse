@@ -22,10 +22,10 @@
 #define PUMP_BOTH		RELAY1 //Bơm phun nước cho MIX và FLOOR
 #define PUMP_MIX		RELAY2 //Van phun sương
 #define PUMP_FLOOR		RELAY3 //Van phun ẩm sàn nhà
-#define	LIGHT			RELAY4 //Đèn chiếu sáng
-#define FAN_MIX			RELAY5 //Quạt đối lưu
-#define FAN_WIND		RELAY6 //Quạt thông gió
-#define ALARM_SIRENS	RELAY6 //Còi báo động
+#define ALARM_SIRENS	RELAY4 //Còi báo động
+#define FAN_WIND		RELAY5 //Quạt thông gió
+#define FAN_MIX			RELAY6 //Quạt đối lưu
+#define	LIGHT			RELAY7 //Đèn chiếu sáng
 
 #define LED_STT			23
 #define BUTTON			4
