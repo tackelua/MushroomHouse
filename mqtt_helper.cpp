@@ -7,7 +7,6 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include "hardware.h"
-#include <LiquidCrystal_I2C.h>
 
 extern String HubID;
 extern String _firmwareVersion;
@@ -28,6 +27,7 @@ bool library = false;
 
 extern bool stt_pump_mix, stt_fan_mix, stt_light;
 extern bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp);
+extern bool create_logs(String relayName, bool status, bool isCommandFromApp);
 extern void send_status_to_server();
 extern void out(int pin, bool status);
 
@@ -69,13 +69,19 @@ void handleTopic__Mushroom_Commands_HubID() {
 	{
 		skip_auto_pump_mix = true;
 		pump_mix_change = control(PUMP_MIX, true, false, isCommandFromApp);
+		create_logs("Pump_Mix", true, isCommandFromApp);
+
 		pump_mix_change = control(PUMP_FLOOR, true, false, isCommandFromApp);
+		create_logs("Pump_Floor", true, isCommandFromApp);
 	}
 	else if (pump_mix_stt == off_)
 	{
 		skip_auto_pump_mix = true;
 		pump_mix_change = control(PUMP_MIX, false, false, isCommandFromApp);
+		create_logs("Pump_Mix", false, isCommandFromApp);
+
 		pump_mix_change = control(PUMP_FLOOR, false, false, isCommandFromApp);
+		create_logs("Pump_Floor", false, isCommandFromApp);
 	}
 
 	String light_stt = commands["LIGHT"].as<String>();
@@ -84,11 +90,13 @@ void handleTopic__Mushroom_Commands_HubID() {
 	{
 		skip_auto_light = true;
 		light_change = control(LIGHT, true, false, isCommandFromApp);
+		create_logs("Light", true, isCommandFromApp);
 	}
 	else if (light_stt == off_)
 	{
 		skip_auto_light = true;
 		light_change = control(LIGHT, false, false, isCommandFromApp);
+		create_logs("Light", false, isCommandFromApp);
 	}
 
 	String fan_stt = commands["FAN"].as<String>();
@@ -97,33 +105,24 @@ void handleTopic__Mushroom_Commands_HubID() {
 	{
 		skip_auto_fan_mix = true;
 		fan_change = control(FAN_MIX, true, false, isCommandFromApp);
+		create_logs("Fan_Mix", true, isCommandFromApp);
+
 		control(FAN_WIND, true, false, isCommandFromApp);
+		create_logs("Fan_Wind", true, isCommandFromApp);
 	}
 	else if (fan_stt == off_)
 	{
 		skip_auto_fan_mix = true;
 		fan_change = control(FAN_MIX, false, false, isCommandFromApp);
+		create_logs("Fan_Mix", false, isCommandFromApp);
+
 		control(FAN_WIND, false, false, isCommandFromApp);
+		create_logs("Fan_Wind", false, isCommandFromApp);
 	}
 
 	if (isCommandFromApp) {
 		send_status_to_server();
 	}
-
-	//reset lcd after control
-	//{
-	//	extern LiquidCrystal_I2C lcd;
-	//	extern void lcd_generate_frame(float temp, float humi, int light);
-	//	extern int temp;
-	//	extern int humi;
-	//	extern int light;
-	//	static unsigned long t = millis();
-	//	if (millis() - t > 10000) {
-	//		t = millis();
-	//		lcd.begin(LCD_SDA, LCD_SCL);
-	//		lcd_generate_frame(temp, humi, light);
-	//	}
-	//}
 }
 
 void handleTopic__Mushroom_Library_HubID() {
@@ -194,6 +193,7 @@ void mqtt_callback(char* topic, uint8_t* payload, unsigned int length) {
 		StaticJsonBuffer<250> jsonBuffer;
 		JsonObject& terminal = jsonBuffer.parseObject(mqtt_Message);
 		/*
+		Mushroom/Terminal
 		{
 			"Command" : "FOTA",
 			"Hub_ID" : "17C80",

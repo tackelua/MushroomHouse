@@ -27,12 +27,12 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <ESP32httpUpdate.h>
-#include <esp32-lcd/LiquidCrystal_I2C.h>
+#include "LiquidCrystal_I2C_m.h"
 #include <Ticker.h>
 #include <WiFiManager.h>
 #include <ThingSpeak.h>
 
-#define __VERSION__  "3.1.13"
+#define __VERSION__  "3.1.14"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
@@ -43,7 +43,7 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 
 
 enum lcd_line_0 {
-	SHOW_HUBID= 0,
+	SHOW_HUBID = 0,
 	NOTI_CONNECTION_LOST,
 	NOTI_WATER_EMPTY
 };
@@ -102,7 +102,7 @@ void setup()
 void loop()
 {
 	wifi_loop();
-	led_loop(); 
+	led_loop();
 	updateTimeStamp(3600000);
 	mqtt_loop();
 	serial_command_handle();
@@ -110,5 +110,6 @@ void loop()
 	warming_alarm();
 	update_sensor(10000);
 	auto_control();
+	lcd_repair();
 }
 

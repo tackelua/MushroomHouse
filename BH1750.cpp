@@ -1,13 +1,19 @@
 #include "BH1750.h"
 
 
-bool BH1750Class:: INIT(int address)
+bool BH1750Class::INIT(int address)
 {
 	Wire.begin(SDA, SCL);
 	Wire.beginTransmission(address);
 	Wire.write(0x10); // 1 [lux] aufloesung
-	Wire.endTransmission();
-	return true;
+	byte result = Wire.endTransmission();
+	if (result == 0) {
+		return true;
+	}
+	else {
+		Serial.print("CAN'T INIT LIGHT SENSOR");
+		return false;
+	}
 }
 
 
@@ -25,10 +31,16 @@ int BH1750Class::BH1750_Read(int address)
 		//Serial.print("-");
 		i++;
 	}
-	Wire.endTransmission();
-	uint16_t val;
-	val = (uint16_t)(buff[0] << 8) | (uint16_t)(buff[1]);
-	return int(val);
+	byte result = Wire.endTransmission();
+	if (result == 0) {
+		uint16_t val;
+		val = (uint16_t)(buff[0] << 8) | (uint16_t)(buff[1]);
+		return int(val);
+	}
+	else {
+		Serial.print("READ LIGHT ERROR");
+		return -1;
+	}
 }
 
 BH1750Class BH1750;

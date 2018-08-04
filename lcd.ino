@@ -1,12 +1,23 @@
 LiquidCrystal_I2C lcd(0x3f, 20, 04);
 Ticker lcdShowTime;
+int current_lcd_line_0 = -1;
 
+int lcd_print(String buffer) {
+	lcd.print(buffer);
+	return lcd.getWriteError();
+}
 void lcd_init() {
 	//lcd.begin(12, 14);
+	DEBUG.println("LCD Init");
+	lcd_result_transmit = 0;
+	digitalWrite(SDA, LOW);
+	digitalWrite(SCL, LOW);
+	delay(10);
 	lcd.begin(LCD_SDA, LCD_SCL);
 	lcd.backlight();
 
 	flag_lcd_line_0 == SHOW_HUBID;
+	current_lcd_line_0 = -1;
 	lcd_show_line_0();
 
 	lcd.setCursor(0, 2);
@@ -45,7 +56,11 @@ void lcd_print_time() {
 	if (now() > 1000000000) {
 		lcd.setCursor(0, 1);
 		String timeStr = getTimeStr();
-		lcd.print(timeStr);
+		if (lcd_print(timeStr)) {
+			DEBUG.println("LCD ERROR");
+			mqtt_publish("DEBUG" + HubID, "LCD ERROR");
+			lcd_init();
+		}
 		DEBUG.println(timeStr);
 	}
 	else {
@@ -78,7 +93,6 @@ void lcd_print_sensor(float temp, float humi, int light) {
 }
 
 void lcd_show_line_0() {
-	static int current_lcd_line_0 = -1;
 	if (flag_lcd_line_0 == NOTI_CONNECTION_LOST) {
 		if (current_lcd_line_0 != NOTI_CONNECTION_LOST) {
 			current_lcd_line_0 = NOTI_CONNECTION_LOST;
@@ -97,5 +111,32 @@ void lcd_show_line_0() {
 		current_lcd_line_0 = SHOW_HUBID;
 		lcd.setCursor(0, 0);
 		lcd.print("   MUSHROOM-" + HubID + "   ");
+	}
+}
+
+void lcd_repair() {
+	if (lcd_result_transmit != 0) {
+		switch (lcd_result_transmit)
+		{
+		case 1:
+			DEBUG.println("LCD_ERROR: data too long to fit in transmit buffer");
+			mqtt_publish("DEBUG" + HubID, "LCD_ERROR: data too long to fit in transmit buffer");
+			break;
+		case 2:
+			DEBUG.println("LCD_ERROR: received NACK on transmit of address");
+			mqtt_publish("DEBUG" + HubID, "LCD_ERROR: received NACK on transmit of address");
+			break;
+		case 3:
+			DEBUG.println("LCD_ERROR: received NACK on transmit of data");
+			mqtt_publish("DEBUG" + HubID, "LCD_ERROR: received NACK on transmit of data");
+			break;
+		case 4:
+			DEBUG.println("LCD_ERROR: other error");
+			mqtt_publish("DEBUG" + HubID, "LCD_ERROR: other error");
+			break;
+		default:
+			break;
+		}
+		lcd_init();
 	}
 }
