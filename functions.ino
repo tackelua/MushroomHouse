@@ -260,6 +260,20 @@ void updateTimeStamp(unsigned long interval = 0) {
 				DEBUG.println(("Time Updated "));
 				DEBUG.println(ts);
 				DEBUG.println();
+
+
+
+				//gửi cho pro mini
+				{
+					StaticJsonBuffer<200> jsBuffer;
+					JsonObject& jsProMicro = jsBuffer.createObject();
+					jsProMicro["cmd"] = "ts";
+					jsProMicro["ts"] = now();
+					String strProMicro;
+					jsProMicro.printTo(strProMicro);
+					ProMicro.println(strProMicro);
+					DEBUG.println(strProMicro);
+				}
 				return;
 			}
 		}
@@ -276,6 +290,19 @@ void updateTimeStamp(unsigned long interval = 0) {
 				setTime(ts);
 				adjustTime(7 * SECS_PER_HOUR);
 				DEBUG.println(("Time Updated\r\n"));
+
+
+				//gửi cho pro mini
+				{
+					StaticJsonBuffer<200> jsBuffer;
+					JsonObject& jsProMicro = jsBuffer.createObject();
+					jsProMicro["cmd"] = "ts";
+					jsProMicro["ts"] = now();
+					String strProMicro;
+					jsProMicro.printTo(strProMicro);
+					ProMicro.println(strProMicro);
+					DEBUG.println(strProMicro);
+				}
 				return;
 			}
 		}
@@ -386,6 +413,16 @@ void update_sensor(unsigned long period) {
 		String data;
 		data.reserve(120);
 		jsData.printTo(data);
+
+		//make compatible cmd ProMicro
+		{
+			jsData["cmd"] = "ss"; //sensor
+			String dtProMicro;
+			jsData.printTo(dtProMicro);
+			ProMicro.println(dtProMicro);
+			DEBUG.println(dtProMicro);
+		}
+
 		mqtt_publish(("Mushroom/Sensor/" + HubID), data, true);
 
 		thingspeak_update(ftemp, fhumi, flight);
@@ -629,7 +666,8 @@ void auto_control() {
 }
 
 void updateFirmware(String url) {
-	lcd.begin(LCD_SDA, LCD_SCL);
+	lcd.begin();
+	//lcd.begin(LCD_SDA, LCD_SCL);
 	lcd.setCursor(3, 0);
 	lcd.print("MUSHROOM-" + HubID);
 	lcd.setCursor(1, 2);

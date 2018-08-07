@@ -9,11 +9,12 @@ int lcd_print(String buffer) {
 void lcd_init() {
 	//lcd.begin(12, 14);
 	DEBUG.println("LCD Init");
-	lcd_result_transmit = 0;
+	//lcd_result_transmit = 0;
 	digitalWrite(SDA, LOW);
 	digitalWrite(SCL, LOW);
 	delay(10);
-	lcd.begin(LCD_SDA, LCD_SCL);
+	lcd.begin();
+	//lcd.begin(LCD_SDA, LCD_SCL);
 	lcd.backlight();
 
 	flag_lcd_line_0 == SHOW_HUBID;
@@ -97,7 +98,16 @@ void lcd_show_line_0() {
 		if (current_lcd_line_0 != NOTI_CONNECTION_LOST) {
 			current_lcd_line_0 = NOTI_CONNECTION_LOST;
 			lcd.setCursor(0, 0);
-			lcd.print("  CONNECTION  LOST  ");
+			lcd.print("  CONNECTION  LOST  ");		
+			
+			StaticJsonBuffer<200> jsBuffer;
+			JsonObject& jsProMicro = jsBuffer.createObject();
+			jsProMicro["cmd"] = "l0";
+			jsProMicro["dt"] = "  CONNECTION  LOST  ";
+			String strProMicro;
+			jsProMicro.printTo(strProMicro);
+			ProMicro.println(strProMicro);
+			DEBUG.println(strProMicro);
 		}
 	}
 	else if (flag_lcd_line_0 == NOTI_WATER_EMPTY) {
@@ -105,38 +115,56 @@ void lcd_show_line_0() {
 			current_lcd_line_0 = NOTI_WATER_EMPTY;
 			lcd.setCursor(0, 0);
 			lcd.print(" ALARM WATER EMPTY! ");
+
+			StaticJsonBuffer<200> jsBuffer;
+			JsonObject& jsProMicro = jsBuffer.createObject();
+			jsProMicro["cmd"] = "l0";
+			jsProMicro["dt"] = " ALARM WATER EMPTY! ";
+			String strProMicro;
+			jsProMicro.printTo(strProMicro);
+			ProMicro.println(strProMicro);
+			DEBUG.println(strProMicro);
 		}
 	}
 	else if (current_lcd_line_0 != SHOW_HUBID) {
 		current_lcd_line_0 = SHOW_HUBID;
 		lcd.setCursor(0, 0);
 		lcd.print("   MUSHROOM-" + HubID + "   ");
+
+		StaticJsonBuffer<200> jsBuffer;
+		JsonObject& jsProMicro = jsBuffer.createObject();
+		jsProMicro["cmd"] = "l0";
+		jsProMicro["dt"] = " ALARM WATER EMPTY! ";
+		String strProMicro;
+		jsProMicro.printTo(strProMicro);
+		ProMicro.println(strProMicro);
+		DEBUG.println(strProMicro);
 	}
 }
 
-void lcd_repair() {
-	if (lcd_result_transmit != 0) {
-		switch (lcd_result_transmit)
-		{
-		case 1:
-			DEBUG.println("LCD_ERROR: data too long to fit in transmit buffer");
-			mqtt_publish("DEBUG" + HubID, "LCD_ERROR: data too long to fit in transmit buffer");
-			break;
-		case 2:
-			DEBUG.println("LCD_ERROR: received NACK on transmit of address");
-			mqtt_publish("DEBUG" + HubID, "LCD_ERROR: received NACK on transmit of address");
-			break;
-		case 3:
-			DEBUG.println("LCD_ERROR: received NACK on transmit of data");
-			mqtt_publish("DEBUG" + HubID, "LCD_ERROR: received NACK on transmit of data");
-			break;
-		case 4:
-			DEBUG.println("LCD_ERROR: other error");
-			mqtt_publish("DEBUG" + HubID, "LCD_ERROR: other error");
-			break;
-		default:
-			break;
-		}
-		lcd_init();
-	}
-}
+//void lcd_repair() {
+//	if (lcd_result_transmit != 0) {
+//		switch (lcd_result_transmit)
+//		{
+//		case 1:
+//			DEBUG.println("LCD_ERROR: data too long to fit in transmit buffer");
+//			mqtt_publish("DEBUG" + HubID, "LCD_ERROR: data too long to fit in transmit buffer");
+//			break;
+//		case 2:
+//			DEBUG.println("LCD_ERROR: received NACK on transmit of address");
+//			mqtt_publish("DEBUG" + HubID, "LCD_ERROR: received NACK on transmit of address");
+//			break;
+//		case 3:
+//			DEBUG.println("LCD_ERROR: received NACK on transmit of data");
+//			mqtt_publish("DEBUG" + HubID, "LCD_ERROR: received NACK on transmit of data");
+//			break;
+//		case 4:
+//			DEBUG.println("LCD_ERROR: other error");
+//			mqtt_publish("DEBUG" + HubID, "LCD_ERROR: other error");
+//			break;
+//		default:
+//			break;
+//		}
+//		lcd_init();
+//	}
+//}

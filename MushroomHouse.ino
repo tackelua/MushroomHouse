@@ -1,20 +1,17 @@
-
 #include <Adafruit_Sensor.h>
 #include <DHT_U.h>
 #include <DHT.h>
 #include <DNSServer.h>
 #include <WebServer.h>
+#include <WiFiClientSecure.h>
+#include <ssl_client.h>
 #include <ESP8266WebServer.h>
 #include <SPIFFS.h>
 #include <vfs_api.h>
 #include <FSImpl.h>
 #include <FS.h>
-#include <Update.h>
-#include <WiFiClientSecure.h>
-#include <ssl_client.h>
 #include <HTTPClient.h>
 #include <WiFi.h>
-#include <WiFiMulti.h>
 #include <TimeLib.h>
 #include <Time.h>
 #include <SHT1x.h>
@@ -22,12 +19,13 @@
 #include "Sensor.h"
 #include "hardware.h"
 #include <Wire.h>
-//#include <LiquidCrystal_I2C.h>
+#include <LiquidCrystal_I2C.h>
 #include "mqtt_helper.h"
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
+#include <Update.h>
 #include <ESP32httpUpdate.h>
-#include "LiquidCrystal_I2C_m.h"
+//#include "LiquidCrystal_I2C_m.h"
 #include <Ticker.h>
 #include <WiFiManager.h>
 #include <ThingSpeak.h>
@@ -41,6 +39,7 @@ String HubID;
 void updateTimeStamp(unsigned long interval);
 bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp);
 
+HardwareSerial ProMicro(2);
 
 enum lcd_line_0 {
 	SHOW_HUBID = 0,
@@ -58,7 +57,10 @@ void setup()
 {
 	delay(50);
 	DEBUG.begin(115200);
-	DEBUG.setTimeout(20);
+	DEBUG.setTimeout(20); 
+	ProMicro.begin(115200, SERIAL_8N1, 16, 17); //baud rate, 8 data bits - no parity - 2 stop bits, RX pin, TX pin
+	ProMicro.print("{\"cmd\":\"l0\",\"dt\":\" SMART MUSHROOM\"}");
+
 
 	DEBUG.print(("\r\nFirmware Version: "));
 	DEBUG.println(_firmwareVersion);
@@ -110,6 +112,6 @@ void loop()
 	warming_alarm();
 	update_sensor(10000);
 	auto_control();
-	lcd_repair();
+	//lcd_repair();
 }
 
