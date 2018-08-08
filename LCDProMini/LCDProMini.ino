@@ -1,4 +1,4 @@
-#include <ESP8266WiFi.h>
+//#include <ESP8266WiFi.h>
 #include <SoftwareSerial.h>
 #include <Wire.h>
 #include <TimeLib.h>
@@ -12,7 +12,7 @@ bool flag_time_set = false;
 bool flag_show_start_ss = false;
 
 void setup() {
-	WiFi.mode(WIFI_OFF);
+	//WiFi.mode(WIFI_OFF);
 	pinMode(LED_BUILTIN, OUTPUT);
 	digitalWrite(LED_BUILTIN, HIGH);
 	//delay(500);
@@ -64,6 +64,7 @@ void loop() {
 				flag_time_set = true;
 				long t = jsCmd["ts"].as<long>();
 				setTime(t);
+				delay(1);
 				adjustTime(7 * SECS_PER_HOUR);
 			}
 			else if (cmd == "l0") {

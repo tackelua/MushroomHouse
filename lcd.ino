@@ -134,7 +134,7 @@ void lcd_show_line_0() {
 		StaticJsonBuffer<200> jsBuffer;
 		JsonObject& jsProMicro = jsBuffer.createObject();
 		jsProMicro["cmd"] = "l0";
-		jsProMicro["dt"] = " ALARM WATER EMPTY! ";
+		jsProMicro["dt"] = "   MUSHROOM-" + HubID + "   ";
 		String strProMicro;
 		jsProMicro.printTo(strProMicro);
 		ProMicro.println(strProMicro);

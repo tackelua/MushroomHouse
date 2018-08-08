@@ -1,9 +1,9 @@
-unsigned long t_pump_mix_change;
-unsigned long t_pump_floor_change;
-unsigned long t_fan_mix_change;
-unsigned long t_fan_wind_change;
-unsigned long t_light_change;
-unsigned long t_lcd_backlight_change;
+unsigned long t_pump_mix_change = -1;
+unsigned long t_pump_floor_change = -1;
+unsigned long t_fan_mix_change = -1;
+unsigned long t_fan_wind_change = -1;
+unsigned long t_light_change = -1;
+unsigned long t_lcd_backlight_change = -1;
 String CMD_ID = "         ";
 
 extern LiquidCrystal_I2C lcd;
@@ -575,13 +575,23 @@ void auto_control() {
 	//https://docs.google.com/document/d/1wSJvCkT_4DIpudjprdOUVIChQpK3V6eW5AJgY0nGKGc/edit
 	//https://prnt.sc/j2oxmu https://snag.gy/6E7xhU.jpg
 
+	bool pump_floor_on = false;
 	//+ PUMP_MIX tự tắt sau 90s
 	if ((millis() - t_pump_mix_change) > (90 * 1000)) {
 		skip_auto_pump_mix = false;
 		if (stt_pump_mix) {
 			DEBUG.println("AUTO PUMP_MIX OFF");
 			control(PUMP_MIX, false, true, false);
+
+			if (flag_schedule_pump_floor) {
+				pump_floor_on = true;
+			}
 		}
+	}
+	if (pump_floor_on) {
+		DEBUG.println("AUTO PUMP_FLOOR OFF");
+		control(PUMP_FLOOR, true, false, false);
+		create_logs("Pump_Floor", true, false);
 	}
 	//+ PUMP_FLOOR tự tắt sau 90s
 	if ((millis() - t_pump_floor_change) > 90000) {
@@ -614,11 +624,11 @@ void auto_control() {
 	//==============================================================
 	//1/ Bật tắt đèn
 	if (!skip_auto_light) {
-		if (library && (!stt_light) && (light < LIGHT_MIN) && (hour() >= 6) && (hour() <= 18)) {
+		if (library && (!stt_light) && (light != -1 && light < LIGHT_MIN) && (hour() >= 6) && (hour() <= 18)) {
 			DEBUG.println("AUTO LIGHT ON");
 			control(LIGHT, true, true, false);
 		}
-		else if (library && (light > LIGHT_MAX) && stt_light) {
+		else if (library && (light != -1 && light > LIGHT_MAX) && stt_light) {
 			DEBUG.println("AUTO LIGHT OFF");
 			control(LIGHT, false, true, false);
 		}
@@ -641,23 +651,25 @@ void auto_control() {
 	}
 
 	//b. Phun sương làm mát, duy trì độ ẩm. Thời gian bật: 90s, mỗi lần check điều kiện cách nhau 30 phút.
-	if (!skip_auto_pump_mix && library && ((int(temp) > TEMP_MAX) || (int(humi) < HUMI_MIN)) && ((millis() - t_pump_mix_change) > (30 * 1000 * SECS_PER_MIN)) && !stt_pump_mix) {
+	if (!skip_auto_pump_mix && library && ((temp != -1 && temp > TEMP_MAX) || (humi != -1 && humi < HUMI_MIN)) && ((millis() - t_pump_mix_change) > (2 * 1000 * SECS_PER_MIN)) && !stt_pump_mix) {
 		DEBUG.println("AUTO PUMP_MIX ON");
 		control(PUMP_MIX, true, true, false);
 		DEBUG.println("AUTO FAN_MIX ON");
 		control(FAN_MIX, true, true, false);
+
+		flag_schedule_pump_floor = true;
 	}
 	//-------------------
 
 	//c. Bật tắt quạt
-	//Bật quạt FAN_MIX mỗi 20 phút
-	if (!skip_auto_fan_mix && ((millis() - t_fan_mix_change) > (15 * 1000 * SECS_PER_MIN)) && !stt_fan_mix) {
+	//Bật quạt FAN_MIX mỗi 15 phút
+	if (!skip_auto_fan_mix && ((millis() - t_fan_mix_change) > (2 * 1000 * SECS_PER_MIN)) && !stt_fan_mix) {
 		DEBUG.println("AUTO FAN_MIX ON");
 		control(FAN_MIX, true, true, false);
 	}
 
 	//FAN_WIND bật nếu thỏa điều kiện, mỗi lần check cách nhau 30 phút
-	if (!skip_auto_fan_wind && library && (((int)humi > HUMI_MAX) || ((int)temp > TEMP_MAX)) && ((millis() - t_fan_wind_change) > (30 * 1000 * SECS_PER_MIN)) && !stt_fan_wind) {
+	if (!skip_auto_fan_wind && library && ((humi != -1 && humi > HUMI_MAX) || (temp != -1 && temp > TEMP_MAX)) && ((millis() - t_fan_wind_change) > (2 * 1000 * SECS_PER_MIN)) && !stt_fan_wind) {
 		DEBUG.println("AUTO FAN_WIND ON");
 		control(FAN_WIND, true, true, false);
 	}

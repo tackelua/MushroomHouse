@@ -34,7 +34,7 @@ void hardware_init() {
 	out(ALARM_SIRENS, OFF);
 	out(LED_STT, ON);
 
-	BH1750.INIT(BH1750_ADDRESS);
+	sensor_init();
 }
 String getMacAddress() {
 	uint8_t baseMac[6];

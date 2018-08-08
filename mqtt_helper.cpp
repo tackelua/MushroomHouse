@@ -12,6 +12,7 @@ extern String HubID;
 extern String _firmwareVersion;
 extern void updateFirmware(String url);
 extern String CMD_ID;
+extern bool flag_schedule_pump_floor;
 
 
 const char* mqtt_server = "mic.duytan.edu.vn";
@@ -71,8 +72,9 @@ void handleTopic__Mushroom_Commands_HubID() {
 		pump_mix_change = control(PUMP_MIX, true, false, isCommandFromApp);
 		create_logs("Pump_Mix", true, isCommandFromApp);
 
-		pump_mix_change = control(PUMP_FLOOR, true, false, isCommandFromApp);
-		create_logs("Pump_Floor", true, isCommandFromApp);
+		//pump_mix_change = control(PUMP_FLOOR, true, false, isCommandFromApp);
+		//create_logs("Pump_Floor", true, isCommandFromApp);
+		flag_schedule_pump_floor = true;
 	}
 	else if (pump_mix_stt == off_)
 	{

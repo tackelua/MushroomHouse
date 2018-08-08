@@ -1,6 +1,7 @@
 #include <Adafruit_Sensor.h>
 #include <DHT_U.h>
 #include <DHT.h>
+#include "TSL2561.h"
 #include <DNSServer.h>
 #include <WebServer.h>
 #include <WiFiClientSecure.h>
@@ -30,7 +31,7 @@
 #include <WiFiManager.h>
 #include <ThingSpeak.h>
 
-#define __VERSION__  "3.1.14"
+#define __VERSION__  "3.1.16b"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
@@ -50,7 +51,11 @@ bool flag_SmartConfig = false;
 bool flag_error_wifi = false;
 bool flag_water_empty = false;
 bool flag_print_time = false;
+
+bool flag_schedule_pump_floor = false;
+
 int flag_lcd_line_0 = SHOW_HUBID;
+
 
 
 void setup()
