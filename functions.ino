@@ -619,7 +619,7 @@ void auto_control() {
 		}
 	}
 	//+ FAN_WIND tự tắt sau 10 phút
-	if ((millis() - t_fan_wind_change) > (2 * 1000 * SECS_PER_MIN)) {
+	if ((millis() - t_fan_wind_change) > (10 * 1000 * SECS_PER_MIN)) {
 		skip_auto_fan_wind = false;
 		if (stt_fan_wind) {
 			DEBUG.println("AUTO FAN_WIND OFF");
@@ -647,7 +647,7 @@ void auto_control() {
 
 	//2. Bật tắt phun sương
 	//a. Phun trực tiếp vào phôi vào lúc 6h và 16h
-	if (((hour() == 6) || (hour() == 16)) && (minute() == 0) && (second() == 0)) {
+	if (((hour() == 6) || (hour() == 16)) && (minute() == 0) && (second() == 0 || second() == 1)) {
 		skip_auto_pump_mix = true;
 		skip_auto_fan_mix = true;
 		DEBUG.println("AUTO FAN_MIX ON");
@@ -663,7 +663,7 @@ void auto_control() {
 	}
 
 	//b. Phun sương làm mát, duy trì độ ẩm. Thời gian bật: 90s, mỗi lần check điều kiện cách nhau 30 phút.
-	if (!skip_auto_pump_mix && library && ((temp != -1 && temp > TEMP_MAX) && (humi != -1 && humi < HUMI_MIN)) && ((millis() - t_pump_mix_change) > (5 * 1000 * SECS_PER_MIN)) && !stt_pump_mix) {
+	if (!skip_auto_pump_mix && library && ((temp != -1 && temp > TEMP_MAX) && (humi != -1 && humi < HUMI_MIN)) && ((millis() - t_pump_mix_change) > (30 * 1000 * SECS_PER_MIN)) && !stt_pump_mix) {
 		DEBUG.println("AUTO PUMP_MIX ON");
 		control(PUMP_MIX, true, true, false);
 		DEBUG.println("AUTO FAN_MIX ON");
@@ -675,19 +675,19 @@ void auto_control() {
 
 	//c. Bật tắt quạt
 	//Bật quạt FAN_MIX mỗi 15 phút
-	if (!skip_auto_fan_mix && ((millis() - t_fan_mix_change) > (5 * 1000 * SECS_PER_MIN)) && !stt_fan_mix) {
+	if (!skip_auto_fan_mix && ((millis() - t_fan_mix_change) > (15 * 1000 * SECS_PER_MIN)) && !stt_fan_mix) {
 		DEBUG.println("AUTO FAN_MIX ON");
 		control(FAN_MIX, true, true, false);
 	}
 
 	//FAN_WIND bật nếu thỏa điều kiện, mỗi lần check cách nhau 30 phút
-	if (!skip_auto_fan_wind && library && ((humi != -1 && humi > HUMI_MAX) || (temp != -1 && temp > TEMP_MAX)) && ((millis() - t_fan_wind_change) > (5 * 1000 * SECS_PER_MIN)) && !stt_fan_wind) {
+	if (!skip_auto_fan_wind && library && ((humi != -1 && humi > HUMI_MAX) || (temp != -1 && temp > TEMP_MAX)) && ((millis() - t_fan_wind_change) > (30 * 1000 * SECS_PER_MIN)) && !stt_fan_wind) {
 		DEBUG.println("AUTO FAN_WIND ON");
 		control(FAN_WIND, true, true, false);
 	}
 
 	//TESTCASE 4, mỗi lần check cách nhau 30 phút
-	if (library && ((humi != -1 && humi < HUMI_MIN) && (temp != -1 && temp < TEMP_MIN)) && ((millis() - t_pump_mix_change) > (5 * 1000 * SECS_PER_MIN))) {
+	if (library && ((humi != -1 && humi < HUMI_MIN) && (temp != -1 && temp < TEMP_MIN)) && ((millis() - t_pump_mix_change) > (30 * 1000 * SECS_PER_MIN))) {
 		DEBUG.println("AUTO FAN_WIND OFF");
 		control(FAN_WIND, false, true, false);
 
