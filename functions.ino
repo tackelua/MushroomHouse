@@ -575,6 +575,16 @@ void auto_control() {
 	//https://docs.google.com/document/d/1wSJvCkT_4DIpudjprdOUVIChQpK3V6eW5AJgY0nGKGc/edit
 	//https://prnt.sc/j2oxmu https://snag.gy/6E7xhU.jpg
 
+
+	//+ LIGHT tự tắt sau 60 phút
+	if ((millis() - t_light_change) > (60 * 1000 * SECS_PER_MIN)) {
+		skip_auto_light = false;
+		if (stt_light) {
+			DEBUG.println("AUTO LIGHT OFF");
+			control(LIGHT, false, true, false);
+		}
+	}
+
 	bool pump_floor_on = false;
 	//+ PUMP_MIX tự tắt sau 90s
 	if ((millis() - t_pump_mix_change) > (90 * 1000)) {
@@ -609,7 +619,7 @@ void auto_control() {
 		}
 	}
 	//+ FAN_WIND tự tắt sau 10 phút
-	if ((millis() - t_fan_wind_change) > (10 * 1000 * SECS_PER_MIN)) {
+	if ((millis() - t_fan_wind_change) > (2 * 1000 * SECS_PER_MIN)) {
 		skip_auto_fan_wind = false;
 		if (stt_fan_wind) {
 			DEBUG.println("AUTO FAN_WIND OFF");
@@ -644,6 +654,8 @@ void auto_control() {
 		control(FAN_MIX, true, true, false);
 		DEBUG.println("AUTO PUMP_MIX ON");
 		control(PUMP_MIX, true, true, false);
+
+
 		//DEBUG.println("AUTO PUMP_FLOOR ON");
 		//control(PUMP_FLOOR, true, true, false);
 		//DEBUG.println("AUTO FAN_WIND ON");
@@ -651,7 +663,7 @@ void auto_control() {
 	}
 
 	//b. Phun sương làm mát, duy trì độ ẩm. Thời gian bật: 90s, mỗi lần check điều kiện cách nhau 30 phút.
-	if (!skip_auto_pump_mix && library && ((temp != -1 && temp > TEMP_MAX) || (humi != -1 && humi < HUMI_MIN)) && ((millis() - t_pump_mix_change) > (2 * 1000 * SECS_PER_MIN)) && !stt_pump_mix) {
+	if (!skip_auto_pump_mix && library && ((temp != -1 && temp > TEMP_MAX) && (humi != -1 && humi < HUMI_MIN)) && ((millis() - t_pump_mix_change) > (5 * 1000 * SECS_PER_MIN)) && !stt_pump_mix) {
 		DEBUG.println("AUTO PUMP_MIX ON");
 		control(PUMP_MIX, true, true, false);
 		DEBUG.println("AUTO FAN_MIX ON");
@@ -663,27 +675,51 @@ void auto_control() {
 
 	//c. Bật tắt quạt
 	//Bật quạt FAN_MIX mỗi 15 phút
-	if (!skip_auto_fan_mix && ((millis() - t_fan_mix_change) > (2 * 1000 * SECS_PER_MIN)) && !stt_fan_mix) {
+	if (!skip_auto_fan_mix && ((millis() - t_fan_mix_change) > (5 * 1000 * SECS_PER_MIN)) && !stt_fan_mix) {
 		DEBUG.println("AUTO FAN_MIX ON");
 		control(FAN_MIX, true, true, false);
 	}
 
 	//FAN_WIND bật nếu thỏa điều kiện, mỗi lần check cách nhau 30 phút
-	if (!skip_auto_fan_wind && library && ((humi != -1 && humi > HUMI_MAX) || (temp != -1 && temp > TEMP_MAX)) && ((millis() - t_fan_wind_change) > (2 * 1000 * SECS_PER_MIN)) && !stt_fan_wind) {
+	if (!skip_auto_fan_wind && library && ((humi != -1 && humi > HUMI_MAX) || (temp != -1 && temp > TEMP_MAX)) && ((millis() - t_fan_wind_change) > (5 * 1000 * SECS_PER_MIN)) && !stt_fan_wind) {
 		DEBUG.println("AUTO FAN_WIND ON");
 		control(FAN_WIND, true, true, false);
+	}
+
+	//TESTCASE 4, mỗi lần check cách nhau 30 phút
+	if (library && ((humi != -1 && humi < HUMI_MIN) && (temp != -1 && temp < TEMP_MIN)) && ((millis() - t_pump_mix_change) > (5 * 1000 * SECS_PER_MIN))) {
+		DEBUG.println("AUTO FAN_WIND OFF");
+		control(FAN_WIND, false, true, false);
+
+		DEBUG.println("AUTO PUMP_MIX ON");
+		control(PUMP_MIX, true, true, false);
+
+		DEBUG.println("AUTO FAN_MIX ON");
+		control(FAN_MIX, true, true, false);
 	}
 
 	delay(1);
 }
 
 void updateFirmware(String url) {
+	{
+		StaticJsonBuffer<200> jsBuffer;
+		JsonObject& jsProMicro = jsBuffer.createObject();
+		jsProMicro["cmd"] = "uf";
+		String strProMicro;
+		jsProMicro.printTo(strProMicro);
+		ProMicro.println(strProMicro);
+		DEBUG.println(strProMicro);
+	}
 	lcd.begin();
 	//lcd.begin(LCD_SDA, LCD_SCL);
 	lcd.setCursor(3, 0);
 	lcd.print("MUSHROOM-" + HubID);
 	lcd.setCursor(1, 2);
 	lcd.print("FIRMWARE  UPDATING");
+
+
+
 	ESPhttpUpdate.rebootOnUpdate(true);
 
 	if ((WiFi.status() == WL_CONNECTED)) {

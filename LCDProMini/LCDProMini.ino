@@ -72,6 +72,10 @@ void loop() {
 				lcd.setCursor(0, 0);
 				lcd.print(data);
 			}
+			else if (cmd == "uf") {
+				lcd.setCursor(0, 0);
+				lcd.print(" FIRMWARE  UPDATING ");
+			}
 			digitalWrite(LED_BUILTIN, LOW);
 		}
 	}

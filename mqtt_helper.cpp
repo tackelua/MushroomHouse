@@ -70,6 +70,7 @@ void handleTopic__Mushroom_Commands_HubID() {
 	{
 		skip_auto_pump_mix = true;
 		pump_mix_change = control(PUMP_MIX, true, false, isCommandFromApp);
+		pump_mix_change = control(PUMP_FLOOR, true, false, isCommandFromApp);
 		create_logs("Pump_Mix", true, isCommandFromApp);
 
 		//pump_mix_change = control(PUMP_FLOOR, true, false, isCommandFromApp);
