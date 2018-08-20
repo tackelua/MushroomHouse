@@ -69,5 +69,23 @@ int readLight() {
 
 	uint32_t lux = tsl.calculateLux(full, ir);
 	DEBUG.print("Lux: "); DEBUG.println(lux);
+	if (lux == 703) {
+		sensor_init();
+
+		uint32_t lum = tsl.getFullLuminosity();
+		uint16_t ir, full;
+		ir = lum >> 16;
+		full = lum & 0xFFFF;
+
+		DEBUG.print("Visible: "); DEBUG.print(full - ir);   DEBUG.print("\t");
+
+		uint32_t lux = tsl.calculateLux(full, ir);
+		DEBUG.print("Lux: "); DEBUG.println(lux);
+
+		if (lux == 703) {
+			return (-1);
+		}
+		return lux;
+	}
 	return lux;
 }

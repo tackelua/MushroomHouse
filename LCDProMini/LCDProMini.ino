@@ -65,7 +65,7 @@ void loop() {
 				long t = jsCmd["ts"].as<long>();
 				setTime(t);
 				delay(1);
-				adjustTime(7 * SECS_PER_HOUR);
+				//adjustTime(7 * SECS_PER_HOUR);
 			}
 			else if (cmd == "l0") {
 				String data = jsCmd["dt"].asString();

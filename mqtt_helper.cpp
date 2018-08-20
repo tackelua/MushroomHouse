@@ -70,7 +70,6 @@ void handleTopic__Mushroom_Commands_HubID() {
 	{
 		skip_auto_pump_mix = true;
 		pump_mix_change = control(PUMP_MIX, true, false, isCommandFromApp);
-		pump_mix_change = control(PUMP_FLOOR, true, false, isCommandFromApp);
 		create_logs("Pump_Mix", true, isCommandFromApp);
 
 		//pump_mix_change = control(PUMP_FLOOR, true, false, isCommandFromApp);
@@ -204,23 +203,37 @@ void mqtt_callback(char* topic, uint8_t* payload, unsigned int length) {
 			"Url" : "http://autominer.xyz/files/MushroomHouse.bin"
 		}
 		*/
-		DEBUG.println(("Update firmware function"));
-		String command = terminal["Command"].as<String>();
-		if (command == "FOTA") {
-			DEBUG.println("Thoa man dieu kien command");
-			String hub = terminal["Hub_ID"].as<String>();
-			if ((hub == HubID) || (hub == "all")) {
-				DEBUG.println("Thoa man dieu kien HubID");
-				String ver = terminal["Version"].as<String>();
-				if (ver != _firmwareVersion) {
-					DEBUG.println("Thoa man dieu kien version");
-					String url = terminal["Url"].as<String>();
-					mqtt_publish("Mushroom/Terminal/" + HubID, "Updating new firmware " + ver);
-					DEBUG.print(("\nUpdating new firmware: "));
-					DEBUG.println(ver);
-					DEBUG.println(url);
-					updateFirmware(url);
-					DEBUG.println(("DONE!"));
+		if (mqtt_Message == "/restart") {
+			mqtt_publish("Mushroom/Terminal/" + HubID, "Restart");
+			DEBUG.println("Restart");
+			ESP.restart();
+			delay(100);
+		}
+		else if (mqtt_Message == "/uf") {
+			String url = "http://gith.cf/files/MushroomHouse.bin";
+			mqtt_publish("Mushroom/Terminal/" + HubID, "Updating new firmware " + url);
+			DEBUG.print(("\nUpdating new firmware: "));
+			updateFirmware(url);
+			DEBUG.println(("DONE!"));
+		}
+		if (terminal.success()) {
+			String command = terminal["Command"].as<String>();
+			if (command == "FOTA") {
+				DEBUG.println(("Update firmware function"));
+				String hub = terminal["Hub_ID"].as<String>();
+				if ((hub == HubID) || (hub == "all")) {
+					DEBUG.println("Thoa man dieu kien HubID");
+					String ver = terminal["Version"].as<String>();
+					if (ver != _firmwareVersion) {
+						DEBUG.println("Thoa man dieu kien version");
+						String url = terminal["Url"].as<String>();
+						mqtt_publish("Mushroom/Terminal/" + HubID, "Updating new firmware " + ver);
+						DEBUG.print(("\nUpdating new firmware: "));
+						DEBUG.println(ver);
+						DEBUG.println(url);
+						updateFirmware(url);
+						DEBUG.println(("DONE!"));
+					}
 				}
 			}
 		}
