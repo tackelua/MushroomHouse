@@ -325,7 +325,7 @@ extern bool stt_alarm;
 void warming_alarm() {
 	static bool waterEmpty_pre = false;
 	static bool waterEmpty;
-	waterEmpty = digitalRead(SS_WATER_LOW);
+	waterEmpty = !digitalRead(SS_WATER_LOW);
 
 	if (waterEmpty) {
 		flag_lcd_line_0 = NOTI_WATER_EMPTY;
@@ -357,7 +357,7 @@ void update_sensor(unsigned long period) {
 	bool flag_update_now = false;
 	static bool waterEmpty_pre = false;
 	static bool waterEmpty;
-	waterEmpty = digitalRead(SS_WATER_LOW);
+	waterEmpty = !digitalRead(SS_WATER_LOW);
 	if (waterEmpty != waterEmpty_pre) {
 		waterEmpty_pre = waterEmpty;
 		flag_update_now = true;
@@ -586,8 +586,8 @@ void auto_control() {
 	}
 
 	bool pump_floor_on = false;
-	//+ PUMP_MIX tự tắt sau 90s
-	if ((millis() - t_pump_mix_change) > (90 * 1000)) {
+	//+ PUMP_MIX tự tắt sau 180s
+	if ((millis() - t_pump_mix_change) > (180 * 1000)) {
 		skip_auto_pump_mix = false;
 		if (stt_pump_mix) {
 			DEBUG.println("AUTO PUMP_MIX OFF");
@@ -610,8 +610,8 @@ void auto_control() {
 			control(PUMP_FLOOR, false, true, false);
 		}
 	}
-	//+ FAN_MIX tự tắt sau 95s
-	if ((millis() - t_fan_mix_change) > 95000) {
+	//+ FAN_MIX tự tắt sau 185s
+	if ((millis() - t_fan_mix_change) > 185000) {
 		skip_auto_fan_mix = false;
 		if (stt_fan_mix) {
 			DEBUG.println("AUTO FAN_MIX OFF");

@@ -31,7 +31,7 @@
 #include <WiFiManager.h>
 #include <ThingSpeak.h>
 
-#define __VERSION__  "3.1.18"
+#define __VERSION__  "3.1.18d"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
