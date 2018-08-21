@@ -169,7 +169,7 @@ void led_loop() {
 			out(LED_STT, !stt_led);
 		}
 	}
-	else if (digitalRead(SS_WATER_LOW)) { //water empty 
+	else if (!digitalRead(SS_WATER_LOW)) { //water empty 
 		static unsigned long t = millis();
 		if (stt_led) {
 			if ((millis() - t) > 1000) {
