@@ -24,11 +24,11 @@ void lcd_init() {
 	lcd.setCursor(0, 2);
 	lcd.print("TEMP    HUMI   LIGHT");
 
-	static bool enable_timmer = false;
-	if (!enable_timmer) {
-		enable_timmer = true;
-		lcdShowTime.attach_ms(1000, lcd_print_time);
-	}
+	//static bool enable_timmer = false;
+	//if (!enable_timmer) {
+	//	enable_timmer = true;
+	//	lcdShowTime.attach_ms(1000, lcd_print_time);
+	//}
 }
 
 String getTimeStr() {
@@ -108,6 +108,7 @@ void lcd_show_line_0() {
 			jsProMicro.printTo(strProMicro);
 			ProMicro.println(strProMicro);
 			DEBUG.println(strProMicro);
+			delay(10);
 		}
 	}
 	else if (flag_lcd_line_0 == NOTI_WATER_EMPTY) {

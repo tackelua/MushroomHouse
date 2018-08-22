@@ -28,10 +28,10 @@
 #include <ESP32httpUpdate.h>
 //#include "LiquidCrystal_I2C_m.h"
 #include <Ticker.h>
-#include <WiFiManager.h>
+#include <WIFIMANAGER-ESP32/WiFiManager.h>
 #include <ThingSpeak.h>
 
-#define __VERSION__  "3.1.18e"
+#define __VERSION__  "3.1.18f"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
@@ -56,8 +56,6 @@ bool flag_schedule_pump_floor = false;
 
 int flag_lcd_line_0 = SHOW_HUBID;
 
-
-
 void setup()
 {
 	delay(50);
@@ -71,6 +69,7 @@ void setup()
 	DEBUG.println(_firmwareVersion);
 
 	HubID = getMacAddress();
+	//HubID = "17C80";
 	hardware_init();
 	lcd_init();
 

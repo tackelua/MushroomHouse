@@ -136,6 +136,12 @@ void wifi_init() {
 	}
 }
 
+bool isWaterEmpty() {
+	bool s = digitalRead(SS_WATER_LOW);
+	s = !s; //cái này đổi do mức logic cảm biến dùng cái khác
+	return s;
+}
+
 void wifi_loop() {
 	if (WiFi.isConnected() == false || mqtt_client.connected() == false) {
 		flag_lcd_line_0 = NOTI_CONNECTION_LOST;
@@ -169,7 +175,7 @@ void led_loop() {
 			out(LED_STT, !stt_led);
 		}
 	}
-	else if (!digitalRead(SS_WATER_LOW)) { //water empty 
+	else if (isWaterEmpty()) { //water empty 
 		static unsigned long t = millis();
 		if (stt_led) {
 			if ((millis() - t) > 1000) {
@@ -325,7 +331,7 @@ extern bool stt_alarm;
 void warming_alarm() {
 	static bool waterEmpty_pre = false;
 	static bool waterEmpty;
-	waterEmpty = !digitalRead(SS_WATER_LOW);
+	waterEmpty = isWaterEmpty();
 
 	if (waterEmpty) {
 		flag_lcd_line_0 = NOTI_WATER_EMPTY;
@@ -357,7 +363,7 @@ void update_sensor(unsigned long period) {
 	bool flag_update_now = false;
 	static bool waterEmpty_pre = false;
 	static bool waterEmpty;
-	waterEmpty = !digitalRead(SS_WATER_LOW);
+	waterEmpty = isWaterEmpty();
 	if (waterEmpty != waterEmpty_pre) {
 		waterEmpty_pre = waterEmpty;
 		flag_update_now = true;
@@ -369,11 +375,13 @@ void update_sensor(unsigned long period) {
 		preMillis = millis();
 		float ftemp, fhumi, flight;
 		ftemp = readTemp1();
+		delay(10);
 		//
 		//mqtt_loop();
 		//serial_command_handle();
 		//
 		fhumi = readHumi1();
+		delay(10);
 		//
 		//mqtt_loop();
 		//serial_command_handle();
@@ -386,10 +394,27 @@ void update_sensor(unsigned long period) {
 
 		unsigned long t_read_sensors = millis() - preMillis;
 
-		temp = (temp > 100 || temp < 0) ? -1 : temp;
-		humi = (humi > 100 || humi < 0) ? -1 : humi;
-		light = light > 20000 ? -1 : light;
+		if (temp < 0 || temp > 100) {
+			delay(50);
+			ftemp = readTemp1();
+			temp = ftemp;
+			temp = (temp > 100 || temp < 0) ? -1 : temp;
+		}
 
+		if (humi < 0 || humi > 100) {
+			delay(50);
+			fhumi = readHumi1();
+			humi = fhumi;
+			humi = (humi > 100 || humi < 0) ? -1 : humi;
+		}
+
+		if (light < 0 || light > 100) {
+			delay(50);
+			flight = readLight();
+			light = flight;
+			light = (light > 20000 || light < 0 || light == 703) ? -1 : light;
+		}
+		
 		lcd_print_sensor(temp, humi, light);
 
 		StaticJsonBuffer<200> jsBuffer;
