@@ -31,7 +31,7 @@
 #include <WIFIMANAGER-ESP32/WiFiManager.h>
 #include <ThingSpeak.h>
 
-#define __VERSION__  "3.1.19b"
+#define __VERSION__  "3.1.19 c"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
@@ -56,6 +56,7 @@ bool flag_schedule_pump_floor = false;
 
 int flag_lcd_line_0 = SHOW_HUBID;
 bool ENABLE_SYSTEM_BY_CONTROL = false;
+unsigned long t_ENABLE_SYSTEM;
 
 void setup()
 {
@@ -104,6 +105,7 @@ void setup()
 	updateTimeStamp(0);
 	mqtt_init();
 	ThingSpeak_init();
+	t_ENABLE_SYSTEM = millis();
 }
 
 void loop()
@@ -112,6 +114,9 @@ void loop()
 	mqtt_loop();
 
 	if (!ENABLE_SYSTEM_BY_CONTROL) {
+		if (millis() - t_ENABLE_SYSTEM > 60000) {
+			ENABLE_SYSTEM_BY_CONTROL = true;
+		}
 		delay(1);
 		return;
 	}
