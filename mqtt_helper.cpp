@@ -31,6 +31,7 @@ extern bool control(int pin, bool status, bool update_to_server, bool isCommandF
 extern bool create_logs(String relayName, bool status, bool isCommandFromApp);
 extern void send_status_to_server();
 extern void out(int pin, bool status);
+extern bool ENABLE_SYSTEM_BY_CONTROL;
 
 String mqtt_Message;
 
@@ -63,6 +64,7 @@ void handleTopic__Mushroom_Commands_HubID() {
 	}
 	else {
 		isCommandFromApp = true;
+		ENABLE_SYSTEM_BY_CONTROL = true;
 	}
 	String pump_mix_stt = commands["MIST"].as<String>();
 	extern bool skip_auto_pump_mix;
@@ -203,19 +205,6 @@ void mqtt_callback(char* topic, uint8_t* payload, unsigned int length) {
 			"Url" : "http://autominer.xyz/files/MushroomHouse.bin"
 		}
 		*/
-		if (mqtt_Message == "/restart") {
-			mqtt_publish("Mushroom/Terminal/" + HubID, "Restart");
-			DEBUG.println("Restart");
-			ESP.restart();
-			delay(100);
-		}
-		else if (mqtt_Message == "/uf") {
-			String url = "http://gith.cf/files/MushroomHouse.bin";
-			mqtt_publish("Mushroom/Terminal/" + HubID, "Updating new firmware " + url);
-			DEBUG.print(("\nUpdating new firmware: "));
-			updateFirmware(url);
-			DEBUG.println(("DONE!"));
-		}
 		if (terminal.success()) {
 			String command = terminal["Command"].as<String>();
 			if (command == "FOTA") {
@@ -240,7 +229,20 @@ void mqtt_callback(char* topic, uint8_t* payload, unsigned int length) {
 	}
 
 	if (topicStr == "Mushroom/Terminal/" + HubID) {
-		if (mqtt_Message.indexOf("/get version") > -1) {
+		if (mqtt_Message == "/restart") {
+			mqtt_publish("Mushroom/Terminal/" + HubID, "Restarting");
+			DEBUG.println("\r\nRestart\r\n");
+			ESP.restart();
+			delay(100);
+		}
+		if (mqtt_Message == "/uf") {
+			String url = "http://gith.cf/files/MushroomHouse.bin";
+			mqtt_publish("Mushroom/Terminal/" + HubID, "Updating new firmware " + url);
+			DEBUG.print(("\nUpdating new firmware: "));
+			updateFirmware(url);
+			DEBUG.println(("DONE!"));
+		}
+		else if (mqtt_Message.indexOf("/get version") > -1) {
 			//StaticJsonBuffer<200> jsBuffer;
 			DynamicJsonBuffer jsBuffer(200);
 			JsonObject& jsData = jsBuffer.createObject();
@@ -296,6 +298,7 @@ void mqtt_reconnect() {  // Loop until we're reconnected
 			mqtt_client.subscribe(("Mushroom/Library/" + HubID).c_str());
 			mqtt_client.subscribe(("Mushroom/Commands/" + HubID).c_str());
 			mqtt_client.subscribe("Mushroom/Terminal");
+			mqtt_client.subscribe(("Mushroom/Terminal/" + HubID).c_str());
 		}
 		else {
 			DEBUG.print(("failed, rc="));

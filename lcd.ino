@@ -106,7 +106,7 @@ void lcd_show_line_0() {
 			jsProMicro["dt"] = "  CONNECTION  LOST  ";
 			String strProMicro;
 			jsProMicro.printTo(strProMicro);
-			ProMicro.println(strProMicro);
+			LCD_UART.println(strProMicro);
 			DEBUG.println(strProMicro);
 			delay(10);
 		}
@@ -123,7 +123,7 @@ void lcd_show_line_0() {
 			jsProMicro["dt"] = " ALARM WATER EMPTY! ";
 			String strProMicro;
 			jsProMicro.printTo(strProMicro);
-			ProMicro.println(strProMicro);
+			LCD_UART.println(strProMicro);
 			DEBUG.println(strProMicro);
 		}
 	}
@@ -138,7 +138,7 @@ void lcd_show_line_0() {
 		jsProMicro["dt"] = "   MUSHROOM-" + HubID + "   ";
 		String strProMicro;
 		jsProMicro.printTo(strProMicro);
-		ProMicro.println(strProMicro);
+		LCD_UART.println(strProMicro);
 		DEBUG.println(strProMicro);
 	}
 }

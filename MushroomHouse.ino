@@ -31,7 +31,7 @@
 #include <WIFIMANAGER-ESP32/WiFiManager.h>
 #include <ThingSpeak.h>
 
-#define __VERSION__  "3.1.18f"
+#define __VERSION__  "3.1.19b"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
@@ -40,7 +40,7 @@ String HubID;
 void updateTimeStamp(unsigned long interval);
 bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp);
 
-HardwareSerial ProMicro(2);
+HardwareSerial LCD_UART(2);
 
 enum lcd_line_0 {
 	SHOW_HUBID = 0,
@@ -55,14 +55,15 @@ bool flag_print_time = false;
 bool flag_schedule_pump_floor = false;
 
 int flag_lcd_line_0 = SHOW_HUBID;
+bool ENABLE_SYSTEM_BY_CONTROL = false;
 
 void setup()
 {
 	delay(50);
 	DEBUG.begin(115200);
 	DEBUG.setTimeout(20); 
-	ProMicro.begin(115200, SERIAL_8N1, 16, 17); //baud rate, 8 data bits - no parity - 2 stop bits, RX pin, TX pin
-	ProMicro.print("{\"cmd\":\"l0\",\"dt\":\" SMART MUSHROOM\"}");
+	LCD_UART.begin(115200, SERIAL_8N1, 16, 17); //baud rate, 8 data bits - no parity - 2 stop bits, RX pin, TX pin
+	LCD_UART.print("{\"cmd\":\"l0\",\"dt\":\" SMART MUSHROOM\"}");
 
 
 	DEBUG.print(("\r\nFirmware Version: "));
@@ -108,9 +109,15 @@ void setup()
 void loop()
 {
 	wifi_loop();
+	mqtt_loop();
+
+	if (!ENABLE_SYSTEM_BY_CONTROL) {
+		delay(1);
+		return;
+	}
+
 	led_loop();
 	updateTimeStamp(3600000);
-	mqtt_loop();
 	serial_command_handle();
 	button_handle();
 	warming_alarm();

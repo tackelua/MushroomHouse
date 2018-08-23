@@ -277,7 +277,7 @@ void updateTimeStamp(unsigned long interval = 0) {
 					jsProMicro["ts"] = now();
 					String strProMicro;
 					jsProMicro.printTo(strProMicro);
-					ProMicro.println(strProMicro);
+					LCD_UART.println(strProMicro);
 					DEBUG.println(strProMicro);
 				}
 				return;
@@ -306,7 +306,7 @@ void updateTimeStamp(unsigned long interval = 0) {
 					jsProMicro["ts"] = now();
 					String strProMicro;
 					jsProMicro.printTo(strProMicro);
-					ProMicro.println(strProMicro);
+					LCD_UART.println(strProMicro);
 					DEBUG.println(strProMicro);
 				}
 				return;
@@ -439,12 +439,12 @@ void update_sensor(unsigned long period) {
 		data.reserve(120);
 		jsData.printTo(data);
 
-		//make compatible cmd ProMicro
+		//make compatible cmd LCD_UART
 		{
 			jsData["cmd"] = "ss"; //sensor
 			String dtProMicro;
 			jsData.printTo(dtProMicro);
-			ProMicro.println(dtProMicro);
+			LCD_UART.println(dtProMicro);
 			DEBUG.println(dtProMicro);
 		}
 
@@ -733,7 +733,7 @@ void updateFirmware(String url) {
 		jsProMicro["cmd"] = "uf";
 		String strProMicro;
 		jsProMicro.printTo(strProMicro);
-		ProMicro.println(strProMicro);
+		LCD_UART.println(strProMicro);
 		DEBUG.println(strProMicro);
 	}
 	lcd.begin();
