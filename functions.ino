@@ -334,6 +334,11 @@ void warming_alarm() {
 	waterEmpty = isWaterEmpty();
 
 	if (waterEmpty) {
+		if (stt_pump_mix == ON || stt_pump_floor == ON) {
+			control(PUMP_FLOOR, false, true, false);
+			control(PUMP_MIX, false, true, false);
+		}
+
 		flag_lcd_line_0 = NOTI_WATER_EMPTY;
 		static unsigned long t = millis() - 15000;
 		if (stt_alarm && (millis() - t > 3000)) {
@@ -414,7 +419,7 @@ void update_sensor(unsigned long period) {
 			light = flight;
 			light = (light > 20000 || light < 0 || light == 703) ? -1 : light;
 		}
-		
+
 		lcd_print_sensor(temp, humi, light);
 
 		StaticJsonBuffer<200> jsBuffer;
@@ -520,7 +525,11 @@ bool create_logs(String relayName, bool status, bool isCommandFromApp) {
 void send_status_to_server();
 bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp);
 bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp) { //status = true -> ON; false -> OFF
-	if ((pin == PUMP_MIX) && (stt_pump_mix != status)) {
+	if ((pin == PUMP_MIX)/* && (stt_pump_mix != status)*/) {
+		if (isWaterEmpty() && status == ON) {
+			mqtt_publish(("Mushroom/DEBUG/" + HubID).c_str(), "WATER EMPTY, CAN NOT PUMP");
+			return true;
+		}
 		t_pump_mix_change = millis();
 		stt_pump_mix = status;
 		out(pin, status ? ON : OFF);
@@ -530,7 +539,11 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 		}
 		return true;
 	}
-	if ((pin == PUMP_FLOOR) && (stt_pump_floor != status)) {
+	if ((pin == PUMP_FLOOR)/* && (stt_pump_floor != status)*/) {
+		if (!isWaterEmpty()) {
+			mqtt_publish(("Mushroom/DEBUG/" + HubID).c_str(), "WATER EMPTY, CAN NOT PUMP");
+			return true;
+		}
 		t_pump_floor_change = millis();
 		stt_pump_floor = status;
 		out(pin, status ? ON : OFF);
@@ -540,7 +553,7 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 		}
 		return true;
 	}
-	if ((pin == FAN_MIX) && (stt_fan_mix != status)) {
+	if ((pin == FAN_MIX) /*&& (stt_fan_mix != status)*/) {
 		t_fan_mix_change = millis();
 		stt_fan_mix = status;
 		out(pin, status ? ON : OFF);
@@ -550,7 +563,7 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 		}
 		return true;
 	}
-	if ((pin == FAN_WIND) && (stt_fan_wind != status)) {
+	if ((pin == FAN_WIND) /*&& (stt_fan_wind != status)*/) {
 		t_fan_wind_change = millis();
 		stt_fan_wind = status;
 		out(pin, status ? ON : OFF);
@@ -560,7 +573,7 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 		}
 		return true;
 	}
-	if ((pin == LIGHT) && (stt_light != status)) {
+	if ((pin == LIGHT) /*&& (stt_light != status)*/) {
 		t_light_change = millis();
 		stt_light = status;
 		out(pin, status ? ON : OFF);
