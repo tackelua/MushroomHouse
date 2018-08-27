@@ -8,7 +8,7 @@ bool stt_fan_wind = OFF;
 bool stt_light = OFF;
 bool stt_alarm = OFF;
 bool stt_led = ON;
-bool stt_lcd_backlight = ON;
+//bool stt_lcd_backlight = ON;
 
 Button myBtn(BUTTON, true, true, 20);
 

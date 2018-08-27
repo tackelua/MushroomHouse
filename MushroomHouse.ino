@@ -2,8 +2,6 @@
 #include <DHT_U.h>
 #include <DHT.h>
 #include "TSL2561.h"
-#include <DNSServer.h>
-#include <WebServer.h>
 #include <WiFiClientSecure.h>
 #include <ssl_client.h>
 #include <ESP8266WebServer.h>
@@ -20,18 +18,20 @@
 #include "Sensor.h"
 #include "hardware.h"
 #include <Wire.h>
-#include <LiquidCrystal_I2C.h>
+//#include <LiquidCrystal_I2C.h>
 #include "mqtt_helper.h"
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <Update.h>
 #include <ESP32httpUpdate.h>
 //#include "LiquidCrystal_I2C_m.h"
-#include <Ticker.h>
+//#include <Ticker.h>
+#include <WebServer-esp32/src/WebServer.h>
+#include <DNSServer.h>
 #include <WIFIMANAGER-ESP32/WiFiManager.h>
 #include <ThingSpeak.h>
 
-#define __VERSION__  "3.1.19e"
+#define __VERSION__  "3.1.19f test"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
@@ -73,30 +73,7 @@ void setup()
 	HubID = getMacAddress();
 	//HubID = "17C80";
 	hardware_init();
-	lcd_init();
-
-	//pinMode(LED_BUILTIN, OUTPUT);
-	//while (true) {
-	//	digitalWrite(RELAY1, ON);
-	//	digitalWrite(RELAY2, ON);
-	//	digitalWrite(RELAY3, ON);
-	//	digitalWrite(RELAY4, ON);
-	//	digitalWrite(RELAY5, ON);
-	//	digitalWrite(RELAY6, ON);
-	//	digitalWrite(RELAY7, ON);
-	//	digitalWrite(LED_BUILTIN, ON);
-	//	delay(1500);
-	//
-	//	digitalWrite(RELAY1, OFF);
-	//	digitalWrite(RELAY2, OFF);
-	//	digitalWrite(RELAY3, OFF);
-	//	digitalWrite(RELAY4, OFF);
-	//	digitalWrite(RELAY5, OFF);
-	//	digitalWrite(RELAY6, OFF);
-	//	digitalWrite(RELAY7, OFF);
-	//	digitalWrite(LED_BUILTIN, OFF);
-	//	delay(1000);
-	//}
+	//lcd_init();
 
 	wifi_init();
 	out(LED_STT, OFF);
@@ -106,6 +83,7 @@ void setup()
 	mqtt_init();
 	ThingSpeak_init();
 	t_ENABLE_SYSTEM = millis();
+	mqtt_publish("Mushroom/DEBUG/" + HubID, "SYSTEM READY");
 }
 
 void loop()
@@ -114,7 +92,7 @@ void loop()
 	mqtt_loop();
 
 	if (!ENABLE_SYSTEM_BY_CONTROL) {
-		if (millis() - t_ENABLE_SYSTEM > 60000) {
+		if (millis() - t_ENABLE_SYSTEM > 30000) {
 			ENABLE_SYSTEM_BY_CONTROL = true;
 		}
 		delay(1);
@@ -129,5 +107,13 @@ void loop()
 	update_sensor(10000);
 	auto_control();
 	//lcd_repair();
+	debug_freeHeap();
 }
 
+void debug_freeHeap() {
+	static unsigned long t = millis();
+	if (millis() - t > 10000) {
+		t = millis();
+		mqtt_publish("Mushroom/DEBUG/" + HubID + "/FREEHEAP", "[" + getTimeStr() + "] " + String(ESP.getFreeHeap()));
+	}
+}

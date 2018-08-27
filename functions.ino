@@ -3,30 +3,31 @@ unsigned long t_pump_floor_change = -1;
 unsigned long t_fan_mix_change = -1;
 unsigned long t_fan_wind_change = -1;
 unsigned long t_light_change = -1;
-unsigned long t_lcd_backlight_change = -1;
+//unsigned long t_lcd_backlight_change = -1;
 String CMD_ID = "         ";
 
-extern LiquidCrystal_I2C lcd;
+//extern LiquidCrystal_I2C lcd;
 extern PubSubClient mqtt_client;
 
 #pragma region functions
 
-//void DEBUG.print(String x, bool isSendToMQTT = false);
-//void DEBUG.print(String x, bool isSendToMQTT) {
-//  DEBUG.print(x);
-//  if (isSendToMQTT) {
-//    mqtt_publish("Mushroom/Debug/" + HubID, x, false);
-//  }
-//}
-//void DEBUG.println(String x = "", bool isSendToMQTT = false);
-//void DEBUG.println(String x, bool isSendToMQTT) {
-//  DEBUG.println(x);
-//  if (x = "") return;
-//  if (isSendToMQTT) {
-//    mqtt_publish("Mushroom/Debug/" + HubID, x, false);
-//    mqtt_publish("Mushroom/Debug/" + HubID, "\r\n", false);
-//  }
-//}
+String getTimeStr() {
+	String strTime;
+	strTime = day() < 10 ? String("0") + day() : day();
+	strTime += "-";
+	strTime += month() < 10 ? String("0") + month() : month();
+	strTime += "-";
+	strTime += year() < 10 ? String("0") + year() : year();
+	strTime += "  ";
+
+	strTime += hour() < 10 ? String("0") + hour() : hour();
+	strTime += ":";
+	strTime += minute() < 10 ? String("0") + minute() : minute();
+	strTime += ":";
+	strTime += second() < 10 ? String("0") + second() : second();
+
+	return strTime;
+}
 
 bool smart_config() {
 	Serial.println(("SmartConfig started."));
@@ -77,6 +78,8 @@ void print_wifi_details() {
 	DEBUG.println();
 	DEBUG.print("Connected to ");
 	DEBUG.println(WiFi.SSID());
+	DEBUG.print("SSID: ");
+	DEBUG.println(WiFi.SSID());
 	DEBUG.print("IP Address: ");
 	DEBUG.println(WiFi.localIP());
 	DEBUG.print("RSSI: ");
@@ -88,10 +91,13 @@ void wifi_init() {
 	WiFi.setAutoReconnect(true);
 	WiFi.mode(WIFI_STA);
 
-	DEBUG.println(("\nWiFi attempting to connect to MIC"));
-	WiFi.begin("IoT Wifi", "mic@dtu12345678()");
-	WiFi.printDiag(DEBUG);
-	DEBUG.println();
+	WiFiManager wifiManager;
+	wifiManager.autoConnect(String("MUSHROOM-" + HubID).c_str());
+
+	//DEBUG.println(("\nWiFi attempting to connect to MIC"));
+	//WiFi.begin("IoT Wifi", "mic@dtu12345678()");
+	//WiFi.printDiag(DEBUG);
+	//DEBUG.println();
 
 	unsigned long t = millis();
 	while (WiFi.status() != WL_CONNECTED && (millis() - t) < 10000) {
@@ -99,31 +105,7 @@ void wifi_init() {
 		out(LED_STT, !stt_led);
 	}
 
-	DEBUG.println("IP getting ");
-	t = millis();
-	while (WiFi.localIP() == INADDR_NONE && (millis() - t) < 3000) {
-		delay(100);
-		out(LED_STT, !stt_led);
-	}
-	if (WiFi.isConnected()) {
-		print_wifi_details();
-		out(LED_STT, false);
-		return;
-	}
-
-	//================================================================
-	DEBUG.println(("\nWiFi attempting to connect to IoT Wifi"));
-	WiFi.begin("IoT Wifi", "mic@dtu12345678()");
-	WiFi.printDiag(DEBUG);
-	DEBUG.println();
-
-	t = millis();
-	while (WiFi.status() != WL_CONNECTED && (millis() - t) < 10000) {
-		delay(500);
-		out(LED_STT, !stt_led);
-	}
-
-	DEBUG.println("IP getting ");
+	DEBUG.println("Connecting ");
 	t = millis();
 	while (WiFi.localIP() == INADDR_NONE && (millis() - t) < 3000) {
 		delay(100);
@@ -420,7 +402,7 @@ void update_sensor(unsigned long period) {
 			light = (light > 20000 || light < 0 || light == 703) ? -1 : light;
 		}
 
-		lcd_print_sensor(temp, humi, light);
+		//lcd_print_sensor(temp, humi, light);
 
 		StaticJsonBuffer<200> jsBuffer;
 		JsonObject& jsData = jsBuffer.createObject();
@@ -459,7 +441,7 @@ void update_sensor(unsigned long period) {
 
 
 		DEBUG.println("Update sensor takes " + String(t_read_sensors) + "ms");
-		mqtt_publish("DEBUG/" + HubID, "Time Read Sensor : " + String(t_read_sensors));
+		mqtt_publish("Mushroom/DEBUG/" + HubID, "Time Read Sensor : " + String(t_read_sensors));
 	}
 }
 
@@ -493,9 +475,9 @@ void out(int pin, bool status) {
 		break;
 	}
 
-	t_lcd_backlight_change = millis();
-	stt_lcd_backlight = true;
-	lcd.backlight();
+	//t_lcd_backlight_change = millis();
+	//stt_lcd_backlight = true;
+	//lcd.backlight();
 }
 
 bool create_logs(String relayName, bool status, bool isCommandFromApp) {
@@ -664,11 +646,12 @@ void auto_control() {
 			control(FAN_WIND, false, true, false);
 		}
 	}
-	//+ LCD BACKLIGHT tự tắt sau 2 phút
-	if (stt_lcd_backlight && (millis() - t_lcd_backlight_change) > (2 * 1000 * SECS_PER_MIN)) {
-		DEBUG.println("AUTO LCD BACKLIGHT OFF");
-		lcd.noBacklight();
-	}
+
+	////+ LCD BACKLIGHT tự tắt sau 2 phút
+	//if (stt_lcd_backlight && (millis() - t_lcd_backlight_change) > (2 * 1000 * SECS_PER_MIN)) {
+	//	DEBUG.println("AUTO LCD BACKLIGHT OFF");
+	//	lcd.noBacklight();
+	//}
 	//==============================================================
 	//1/ Bật tắt đèn
 	if (!skip_auto_light) {
@@ -749,12 +732,12 @@ void updateFirmware(String url) {
 		LCD_UART.println(strProMicro);
 		DEBUG.println(strProMicro);
 	}
-	lcd.begin();
-	//lcd.begin(LCD_SDA, LCD_SCL);
-	lcd.setCursor(3, 0);
-	lcd.print("MUSHROOM-" + HubID);
-	lcd.setCursor(1, 2);
-	lcd.print("FIRMWARE  UPDATING");
+	//lcd.begin();
+	////lcd.begin(LCD_SDA, LCD_SCL);
+	//lcd.setCursor(3, 0);
+	//lcd.print("MUSHROOM-" + HubID);
+	//lcd.setCursor(1, 2);
+	//lcd.print("FIRMWARE  UPDATING");
 
 
 
