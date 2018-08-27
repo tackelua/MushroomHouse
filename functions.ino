@@ -143,9 +143,9 @@ void wifi_loop() {
 			DEBUG.print("RSSI: ");
 			DEBUG.println(WiFi.RSSI());
 		}
-		else {
-			wifi_init();
-		}
+		//else {
+		//	wifi_init();
+		//}
 	}
 }
 
@@ -177,6 +177,7 @@ void led_loop() {
 			out(LED_STT, stt_led);
 		}
 	}
+	delay(1);
 }
 
 String http_request(String host, uint16_t port = 80, String url = "/") {
