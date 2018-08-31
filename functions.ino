@@ -376,33 +376,36 @@ void update_sensor(unsigned long period) {
 		//
 		flight = readLight();
 
-		temp = ftemp;
-		humi = fhumi;
-		light = flight;
+		int itemp = ftemp;
+		int ihumi = fhumi;
+		int ilight = flight;
 
 		unsigned long t_read_sensors = millis() - preMillis;
 
-		if (temp < 0 || temp > 100) {
+		if (itemp < 0 || itemp > 100) {
 			delay(50);
 			ftemp = readTemp1();
-			temp = ftemp;
-			temp = (temp > 100 || temp < 0) ? -1 : temp;
+			itemp = ftemp;
+			itemp = (itemp > 100 || itemp < 0) ? -1 : itemp;
 		}
 
-		if (humi < 0 || humi > 100) {
+		if (ihumi < 0 || ihumi > 100) {
 			delay(50);
 			fhumi = readHumi1();
-			humi = fhumi;
-			humi = (humi > 100 || humi < 0) ? -1 : humi;
+			ihumi = fhumi;
+			ihumi = (ihumi > 100 || ihumi < 0) ? -1 : ihumi;
 		}
 
-		if (light < 0 || light > 100) {
+		if (ilight < 0 || ilight > 100) {
 			delay(50);
 			flight = readLight();
-			light = flight;
-			light = (light > 20000 || light < 0 || light == 703) ? -1 : light;
+			ilight = flight;
+			ilight = (ilight > 20000 || ilight < 0 || ilight == 703) ? -1 : ilight;
 		}
 
+		if (itemp != -1) temp = itemp;
+		if (ihumi != -1) humi = ihumi;
+		if (ilight != -1) light = ilight;
 		//lcd_print_sensor(temp, humi, light);
 
 		StaticJsonBuffer<200> jsBuffer;
