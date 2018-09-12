@@ -31,7 +31,7 @@
 #include <WIFIMANAGER-ESP32/WiFiManager.h>
 #include <ThingSpeak.h>
 
-#define __VERSION__  "3.1.19f_test1"
+#define __VERSION__  "3.1.20b"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 

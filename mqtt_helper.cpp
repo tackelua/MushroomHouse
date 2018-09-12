@@ -24,6 +24,7 @@ const String on_ = "on";
 const String off_ = "off";
 
 int TEMP_MAX, TEMP_MIN, HUMI_MAX, HUMI_MIN, LIGHT_MAX, LIGHT_MIN;
+long DATE_HAVERST_PHASE;
 bool library = false;
 
 extern bool stt_pump_mix, stt_fan_mix, stt_light;
@@ -138,6 +139,7 @@ void handleTopic__Mushroom_Library_HubID() {
 	HUMI_MIN = lib["HUMI_MIN"].as<int>();
 	LIGHT_MAX = lib["LIGHT_MAX"].as<int>();
 	LIGHT_MIN = lib["LIGHT_MIN"].as<int>();
+	DATE_HAVERST_PHASE = lib["DATE_HAVERST_PHASE"].as<long>();
 	library = true;
 	DEBUG.println("TEMP_MAX = " + String(TEMP_MAX));
 	DEBUG.println("TEMP_MIN = " + String(TEMP_MIN));
@@ -145,6 +147,7 @@ void handleTopic__Mushroom_Library_HubID() {
 	DEBUG.println("HUMI_MIN = " + String(HUMI_MIN));
 	DEBUG.println("LIGHT_MAX = " + String(LIGHT_MAX));
 	DEBUG.println("LIGHT_MIN = " + String(LIGHT_MIN));
+	DEBUG.println("DATE_HAVERST_PHASE = " + String(DATE_HAVERST_PHASE));
 }
 #pragma endregion
 

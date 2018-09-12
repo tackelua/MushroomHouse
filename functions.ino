@@ -343,9 +343,9 @@ void warming_alarm() {
 	}
 	lcd_show_line_0();
 }
-int temp;
-int humi;
-int light;
+int temp = 0;
+int humi = 0;
+int light = 0;
 void update_sensor(unsigned long period) {
 	//check waterEmpty nếu thay đổi thì update ngay lập tức
 	bool flag_update_now = false;
@@ -376,9 +376,9 @@ void update_sensor(unsigned long period) {
 		//
 		flight = readLight();
 
-		int itemp = ftemp;
-		int ihumi = fhumi;
-		int ilight = flight;
+		int itemp = round(ftemp);
+		int ihumi = round(fhumi);
+		int ilight = round(flight);
 
 		unsigned long t_read_sensors = millis() - preMillis;
 
@@ -689,12 +689,20 @@ void auto_control() {
 
 	//b. Phun sương làm mát, duy trì độ ẩm. Thời gian bật: 90s, mỗi lần check điều kiện cách nhau 30 phút.
 	if (!skip_auto_pump_mix && library && ((temp != -1 && temp > TEMP_MAX) && (humi != -1 && humi < HUMI_MIN)) && ((millis() - t_pump_mix_change) > (30 * 1000 * SECS_PER_MIN)) && !stt_pump_mix) {
-		DEBUG.println("AUTO PUMP_MIX ON");
-		control(PUMP_MIX, true, true, false);
-		DEBUG.println("AUTO FAN_MIX ON");
-		control(FAN_MIX, true, true, false);
+		if (now() > DATE_HAVERST_PHASE) {
+			DEBUG.println("AUTO PUMP_MIX ON");
+			control(PUMP_MIX, true, true, false);
+			DEBUG.println("AUTO FAN_MIX ON");
+			control(FAN_MIX, true, true, false);
 
-		flag_schedule_pump_floor = true;
+			flag_schedule_pump_floor = true;
+		}
+		else {
+			DEBUG.println("AUTO PUMP_FLOOR ON");
+			control(PUMP_FLOOR, true, true, false);
+			DEBUG.println("AUTO FAN_MIX ON");
+			control(FAN_MIX, true, true, false);
+		}
 	}
 	//-------------------
 
