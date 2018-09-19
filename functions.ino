@@ -36,7 +36,7 @@ bool smart_config() {
 	while (1) {
 		stt_led = !stt_led;
 		out(LED_STT, stt_led);
-		delay(200);
+		wait(200);
 		if (WiFi.smartConfigDone()) {
 			Serial.println(("SmartConfig: Success"));
 			Serial.print(("RSSI: "));
@@ -101,14 +101,14 @@ void wifi_init() {
 
 	unsigned long t = millis();
 	while (WiFi.status() != WL_CONNECTED && (millis() - t) < 10000) {
-		delay(500);
+		wait(500);
 		out(LED_STT, !stt_led);
 	}
 
 	DEBUG.println("Connecting ");
 	t = millis();
 	while (WiFi.localIP() == INADDR_NONE && (millis() - t) < 3000) {
-		delay(100);
+		wait(100);
 		out(LED_STT, !stt_led);
 	}
 	if (WiFi.isConnected()) {
@@ -177,7 +177,7 @@ void led_loop() {
 			out(LED_STT, stt_led);
 		}
 	}
-	delay(1);
+	wait(1);
 }
 
 String http_request(String host, uint16_t port = 80, String url = "/") {
@@ -186,7 +186,7 @@ String http_request(String host, uint16_t port = 80, String url = "/") {
 	client.setTimeout(100);
 	if (!client.connect(host.c_str(), port)) {
 		Serial.println("connection failed");
-		delay(1000);
+		wait(1000);
 		return "";
 	}
 	client.print(String("GET ") + url + " HTTP/1.1\r\n" +
@@ -199,7 +199,7 @@ String http_request(String host, uint16_t port = 80, String url = "/") {
 			client.stop();
 			return "";
 		}
-		delay(1);
+		wait(1);
 	}
 
 	// Read all the lines of the reply from server and print them to Serial
@@ -226,7 +226,7 @@ void updateTimeStamp(unsigned long interval = 0) {
 	if (!WiFi.isConnected()) {
 		return;
 	}
-	delay(1);
+	wait(1);
 	static unsigned long t_pre_update = 0;
 	static bool wasSync = false;
 	if (interval == 0) {
@@ -306,7 +306,7 @@ void updateTimeStamp(unsigned long interval = 0) {
 	if (!wasSync) {
 		updateTimeStamp();
 	}
-	delay(1);
+	wait(1);
 }
 
 //====================================================================
@@ -363,13 +363,13 @@ void update_sensor(unsigned long period) {
 		preMillis = millis();
 		float ftemp, fhumi, flight;
 		ftemp = readTemp1();
-		delay(10);
+		wait(10);
 		//
 		//mqtt_loop();
 		//serial_command_handle();
 		//
 		fhumi = readHumi1();
-		delay(10);
+		wait(10);
 		//
 		//mqtt_loop();
 		//serial_command_handle();
@@ -383,21 +383,21 @@ void update_sensor(unsigned long period) {
 		unsigned long t_read_sensors = millis() - preMillis;
 
 		if (itemp < 0 || itemp > 100) {
-			delay(50);
+			wait(50);
 			ftemp = readTemp1();
 			itemp = ftemp;
 			itemp = (itemp > 100 || itemp < 0) ? -1 : itemp;
 		}
 
 		if (ihumi < 0 || ihumi > 100) {
-			delay(50);
+			wait(50);
 			fhumi = readHumi1();
 			ihumi = fhumi;
 			ihumi = (ihumi > 100 || ihumi < 0) ? -1 : ihumi;
 		}
 
 		if (ilight < 0 || ilight > 100) {
-			delay(50);
+			wait(50);
 			flight = readLight();
 			ilight = flight;
 			ilight = (ilight > 20000 || ilight < 0 || ilight == 703) ? -1 : ilight;
@@ -513,7 +513,7 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp) { //status = true -> ON; false -> OFF
 	if ((pin == PUMP_MIX)/* && (stt_pump_mix != status)*/) {
 		if (isWaterEmpty() && status == ON) {
-			mqtt_publish(("Mushroom/DEBUG/" + HubID).c_str(), "WATER EMPTY, CAN NOT PUMP");
+			mqtt_publish(("Mushroom/DEBUG/" + HubID).c_str(), "WATER EMPTY, CAN NOT ON PUMP_MIX");
 			return true;
 		}
 		t_pump_mix_change = millis();
@@ -526,8 +526,8 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 		return true;
 	}
 	if ((pin == PUMP_FLOOR)/* && (stt_pump_floor != status)*/) {
-		if (!isWaterEmpty()) {
-			mqtt_publish(("Mushroom/DEBUG/" + HubID).c_str(), "WATER EMPTY, CAN NOT PUMP");
+		if (isWaterEmpty() && status == ON) {
+			mqtt_publish(("Mushroom/DEBUG/" + HubID).c_str(), "WATER EMPTY, CAN NOT ON PUMP_FLOOR");
 			return true;
 		}
 		t_pump_floor_change = millis();
@@ -731,7 +731,7 @@ void auto_control() {
 		control(FAN_MIX, true, true, false);
 	}
 
-	delay(1);
+	wait(1);
 }
 
 void updateFirmware(String url) {
@@ -785,7 +785,7 @@ void serial_command_handle() {
 		control_handle(Scmd);
 	}
 
-	delay(1);
+	wait(1);
 }
 
 void control_handle(String cmd) {

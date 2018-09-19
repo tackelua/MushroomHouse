@@ -33,6 +33,7 @@ extern bool create_logs(String relayName, bool status, bool isCommandFromApp);
 extern void send_status_to_server();
 extern void out(int pin, bool status);
 extern bool ENABLE_SYSTEM_BY_CONTROL;
+extern void wait(unsigned long ms);
 
 String mqtt_Message;
 
@@ -236,10 +237,16 @@ void mqtt_callback(char* topic, uint8_t* payload, unsigned int length) {
 			mqtt_publish("Mushroom/Terminal/" + HubID, "Restarting");
 			DEBUG.println("\r\nRestart\r\n");
 			ESP.restart();
-			delay(100);
+			wait(100);
 		}
-		if (mqtt_Message == "/uf") {
-			String url = "http://gith.cf/files/MushroomHouse.bin";
+		if (mqtt_Message.startsWith("/uf")) {
+			String url;
+			url = mqtt_Message.substring(3);
+			url.trim();
+
+			if (!url.startsWith("http")) {
+				url = "http://gith.cf/files/MushroomHouse.bin";
+			}
 			mqtt_publish("Mushroom/Terminal/" + HubID, "Updating new firmware " + url);
 			DEBUG.print(("\nUpdating new firmware: "));
 			updateFirmware(url);
@@ -308,7 +315,7 @@ void mqtt_reconnect() {  // Loop until we're reconnected
 			DEBUG.println(String(mqtt_client.state()));
 			return;
 			//DEBUG.println((" try again"));
-			//delay(500);
+			//wait(500);
 		}
 	}
 }
@@ -328,7 +335,7 @@ void mqtt_loop() {
 		mqtt_reconnect();
 	}
 	mqtt_client.loop();
-	delay(1);
+	wait(1);
 }
 
 bool mqtt_publish(String topic, String payload, bool retain) {
@@ -342,7 +349,7 @@ bool mqtt_publish(String topic, String payload, bool retain) {
 
 	out(LED_STT, ON);
 	bool ret = mqtt_client.publish(topic.c_str(), payload.c_str(), retain);
-	delay(1);
+	wait(1);
 	out(LED_STT, OFF);
 	return ret;
 }

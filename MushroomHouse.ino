@@ -30,8 +30,9 @@
 #include <DNSServer.h>
 #include <WIFIMANAGER-ESP32/WiFiManager.h>
 #include <ThingSpeak.h>
+#include "esp_system.h"
 
-#define __VERSION__  "3.1.20b"
+#define __VERSION__  "3.1.21 testing"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
@@ -58,9 +59,30 @@ int flag_lcd_line_0 = SHOW_HUBID;
 bool ENABLE_SYSTEM_BY_CONTROL = false;
 unsigned long t_ENABLE_SYSTEM;
 
+hw_timer_t *timer = NULL;
+void IRAM_ATTR resetModule() {
+	ets_printf("reboot\n");
+	esp_restart_noos();
+}
+void watchdog_init() {
+	timer = timerBegin(0, 80, true); //timer 0, div 80
+	timerAttachInterrupt(timer, &resetModule, true);
+	timerAlarmWrite(timer, 5000000, false); //set time in us
+	timerAlarmEnable(timer); //enable interrupt
+}
+
+void watchdog_feed() {
+	timerWrite(timer, 0); //reset timer (feed watchdog)
+}
+void wait(unsigned long ms) {
+	watchdog_init();
+	delay(ms);
+}
+
 void setup()
 {
-	delay(50);
+	wait(50);
+	watchdog_init();
 	DEBUG.begin(115200);
 	DEBUG.setTimeout(20); 
 	LCD_UART.begin(115200, SERIAL_8N1, 16, 17); //baud rate, 8 data bits - no parity - 2 stop bits, RX pin, TX pin
@@ -95,7 +117,7 @@ void loop()
 		if (millis() - t_ENABLE_SYSTEM > 30000) {
 			ENABLE_SYSTEM_BY_CONTROL = true;
 		}
-		delay(1);
+		wait(1);
 		return;
 	}
 
