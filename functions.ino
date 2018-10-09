@@ -347,6 +347,7 @@ int temp = 0;
 int humi = 0;
 int light = 0;
 void update_sensor(unsigned long period) {
+	static int sensor_fail = 0;
 	//check waterEmpty nếu thay đổi thì update ngay lập tức
 	bool flag_update_now = false;
 	static bool waterEmpty_pre = false;
@@ -382,31 +383,56 @@ void update_sensor(unsigned long period) {
 
 		unsigned long t_read_sensors = millis() - preMillis;
 
-		if (itemp < 0 || itemp > 100) {
+		if (itemp <= 0 || itemp > 100) {
 			wait(50);
 			ftemp = readTemp1();
 			itemp = ftemp;
-			itemp = (itemp > 100 || itemp < 0) ? -1 : itemp;
+			itemp = (itemp > 100 || itemp <= 0) ? -1 : itemp;
 		}
 
-		if (ihumi < 0 || ihumi > 100) {
+		if (ihumi <= 0 || ihumi > 100) {
 			wait(50);
 			fhumi = readHumi1();
 			ihumi = fhumi;
-			ihumi = (ihumi > 100 || ihumi < 0) ? -1 : ihumi;
+			ihumi = (ihumi > 100 || ihumi <= 0) ? -1 : ihumi;
 		}
 
-		if (ilight < 0 || ilight > 100) {
+		if (ilight <= 0 || ilight > 100) {
 			wait(50);
 			flight = readLight();
 			ilight = flight;
 			ilight = (ilight > 20000 || ilight < 0 || ilight == 703) ? -1 : ilight;
 		}
 
-		if (itemp != -1) temp = itemp;
-		if (ihumi != -1) humi = ihumi;
-		if (ilight != -1) light = ilight;
+		if (itemp != -1) {
+			temp = itemp;
+		}
+		else {
+			temp = 0;
+			sensor_fail++;
+		}
+		if (ihumi != -1) {
+			humi = ihumi;
+		}
+		else {
+			humi = 0;
+			sensor_fail++;
+		}
+		if (ilight != -1) {
+			light = ilight;
+		}
+		else {
+			light = 0;
+		}
 		//lcd_print_sensor(temp, humi, light);
+
+		if (sensor_fail > 10) {
+			ESP.restart();
+		}
+
+		if (temp > 0 && temp < 60 && humi > 0 && humi < 100) {
+			sensor_fail = 0;
+		}
 
 		StaticJsonBuffer<200> jsBuffer;
 		JsonObject& jsData = jsBuffer.createObject();
@@ -442,7 +468,7 @@ void update_sensor(unsigned long period) {
 		mqtt_publish(("Mushroom/Sensor/" + HubID), data, true);
 
 		thingspeak_update(ftemp, fhumi, flight);
-
+		mqtt_publish("Mushroom/DEBUG/" + HubID, "Sensor: " + String(ftemp) + " " + String(fhumi) + " " + String(flight) + "\nsensor_fail: " + String(sensor_fail));
 
 		DEBUG.println("Update sensor takes " + String(t_read_sensors) + "ms");
 		mqtt_publish("Mushroom/DEBUG/" + HubID, "Time Read Sensor : " + String(t_read_sensors));
@@ -611,7 +637,20 @@ void auto_control() {
 
 	bool pump_floor_on = false;
 	//+ PUMP_MIX tự tắt sau 180s
-	if ((millis() - t_pump_mix_change) > (180 * 1000)) {
+	if (hour() >= 11 && hour() < 15) {
+		if ((millis() - t_pump_mix_change) > (6 * 60 * 1000)) {
+			skip_auto_pump_mix = false;
+			if (stt_pump_mix) {
+				DEBUG.println("AUTO PUMP_MIX OFF");
+				control(PUMP_MIX, false, true, false);
+
+				if (flag_schedule_pump_floor) {
+					pump_floor_on = true;
+				}
+			}
+		}
+	}
+	else if ((millis() - t_pump_mix_change) > (180 * 1000)) {
 		skip_auto_pump_mix = false;
 		if (stt_pump_mix) {
 			DEBUG.println("AUTO PUMP_MIX OFF");
@@ -622,6 +661,7 @@ void auto_control() {
 			}
 		}
 	}
+
 	if (pump_floor_on) {
 		DEBUG.println("AUTO PUMP_FLOOR OFF");
 		control(PUMP_FLOOR, true, false, false);
@@ -635,7 +675,16 @@ void auto_control() {
 		}
 	}
 	//+ FAN_MIX tự tắt sau 185s
-	if ((millis() - t_fan_mix_change) > 185000) {
+	if (hour() >= 11 && hour() < 15) {
+		if ((millis() - t_fan_mix_change) > (6 * 60 * 1000) + 5) {
+			skip_auto_fan_mix = false;
+			if (stt_fan_mix) {
+				DEBUG.println("AUTO FAN_MIX OFF");
+				control(FAN_MIX, false, true, false);
+			}
+		}
+	}
+	else if ((millis() - t_fan_mix_change) > 185000) {
 		skip_auto_fan_mix = false;
 		if (stt_fan_mix) {
 			DEBUG.println("AUTO FAN_MIX OFF");

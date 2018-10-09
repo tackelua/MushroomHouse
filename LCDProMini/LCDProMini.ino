@@ -132,7 +132,7 @@ void lcd_init() {
 	lcd.backlight();
 
 	lcd.setCursor(0, 0);
-	lcd.print("  SMART  MUSHROOM");
+	lcd.print("  SMART  MUSHROOM   ");
 	lcd.setCursor(0, 1);
 	lcd.print("   W E L C O M E");
 }

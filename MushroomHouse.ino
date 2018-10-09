@@ -32,7 +32,7 @@
 #include <ThingSpeak.h>
 #include "esp_system.h"
 
-#define __VERSION__  "3.1.21 testing"
+#define __VERSION__  "3.1.22 testing"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
@@ -65,17 +65,17 @@ void IRAM_ATTR resetModule() {
 	esp_restart_noos();
 }
 void watchdog_init() {
-	timer = timerBegin(0, 80, true); //timer 0, div 80
-	timerAttachInterrupt(timer, &resetModule, true);
-	timerAlarmWrite(timer, 5000000, false); //set time in us
-	timerAlarmEnable(timer); //enable interrupt
+	//timer = timerBegin(0, 80, true); //timer 0, div 80
+	//timerAttachInterrupt(timer, &resetModule, true);
+	//timerAlarmWrite(timer, 1000000000, false); //set time in us
+	//timerAlarmEnable(timer); //enable interrupt
 }
 
 void watchdog_feed() {
-	timerWrite(timer, 0); //reset timer (feed watchdog)
+	//timerWrite(timer, 0); //reset timer (feed watchdog)
 }
 void wait(unsigned long ms) {
-	watchdog_init();
+	watchdog_feed();
 	delay(ms);
 }
 
@@ -110,6 +110,7 @@ void setup()
 
 void loop()
 {
+	watchdog_feed();
 	wifi_loop();
 	mqtt_loop();
 
