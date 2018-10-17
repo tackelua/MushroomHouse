@@ -504,6 +504,7 @@ void out(int pin, bool status) {
 	default:
 		break;
 	}
+	thingspeak_log_control(pin, status);
 
 	//t_lcd_backlight_change = millis();
 	//stt_lcd_backlight = true;
@@ -625,6 +626,20 @@ void auto_control() {
 	//https://docs.google.com/document/d/1wSJvCkT_4DIpudjprdOUVIChQpK3V6eW5AJgY0nGKGc/edit
 	//https://prnt.sc/j2oxmu https://snag.gy/6E7xhU.jpg
 
+	//auto trở lại sau khi điều khiển 5 phút
+	if (skip_auto_light && (millis() - t_light_change) > (5 * 60000)) {
+		skip_auto_light = false;
+	}
+	if (skip_auto_pump_mix && (millis() - t_pump_mix_change) > (5 * 60000)) {
+		skip_auto_pump_mix = false;
+	}
+	if (skip_auto_fan_mix && (millis() - t_fan_mix_change) > (5 * 60000)) {
+		skip_auto_fan_mix = false;
+	}
+	if (skip_auto_fan_wind && (millis() - t_fan_wind_change) > (5 * 60000)) {
+		skip_auto_fan_wind = false;
+	}
+	//==============================================================
 
 	//+ LIGHT tự tắt sau 60 phút
 	if ((millis() - t_light_change) > (60 * 1000 * SECS_PER_MIN)) {

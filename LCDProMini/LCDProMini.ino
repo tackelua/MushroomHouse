@@ -119,7 +119,7 @@ void loop() {
 		}
 	}
 
-	if (millis() - t_system_active > 90000) {
+	if (millis() - t_system_active > 3 * 60000) {
 		t_system_active = millis();
 		reset_esp32();
 	}

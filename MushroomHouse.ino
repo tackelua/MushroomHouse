@@ -32,7 +32,7 @@
 #include <ThingSpeak.h>
 #include "esp_system.h"
 
-#define __VERSION__  "3.1.22 testing"
+#define __VERSION__  "3.1.23 testing"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
