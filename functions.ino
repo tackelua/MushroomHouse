@@ -352,8 +352,11 @@ void update_sensor(unsigned long period) {
 		update_sensor_interval = 30000;
 		update_sensor_t = millis();
 	}
-	//mqtt_loop();
 
+	//reset delay_update_sensor
+	if (millis() - delay_update_sensor_t < 2000) {
+		return;
+	}
 
 	static int sensor_fail = 0;
 	//check waterEmpty nếu thay đổi thì update ngay lập tức

@@ -39,6 +39,7 @@ extern void control_handle(String cmd);
 
 time_t update_sensor_interval = 30000;
 time_t update_sensor_t; //millis()
+time_t delay_update_sensor_t;
 
 String mqtt_Message;
 
@@ -75,7 +76,8 @@ void handleTopic__Mushroom_Commands_HubID() {
 		ENABLE_SYSTEM_BY_CONTROL = true;
 	}
 	
-	if (isCommandFromApp || firsControlFromRetain) {
+	if (isCommandFromApp || firsControlFromRetain) { 
+		delay_update_sensor_t = millis();
 		//gi?m update_sensor_interval
 		update_sensor_interval = 5000;
 		update_sensor_t = millis();
