@@ -15,6 +15,9 @@ extern String mqtt_Message;
 extern const String on_;
 extern const String off_;
 
+extern time_t update_sensor_interval;
+extern time_t update_sensor_t; //millis()
+
 void mqtt_callback(char* topic, uint8_t* payload, unsigned int length);
 void mqtt_reconnect();
 void mqtt_init();

@@ -79,13 +79,13 @@ int readLight() {
 
 		DEBUG.print("Visible: "); DEBUG.print(full - ir);   DEBUG.print("\t");
 
-		uint32_t lux = tsl.calculateLux(full, ir);
-		DEBUG.print("Lux: "); DEBUG.println(lux);
+		uint32_t llux = tsl.calculateLux(full, ir);
+		DEBUG.print("Lux: "); DEBUG.println(llux);
 
-		if (lux == 703) {
+		if (llux == 703) {
 			return (-1);
 		}
-		return lux;
+		return llux;
 	}
 	return lux;
 }

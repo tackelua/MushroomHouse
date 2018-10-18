@@ -34,6 +34,11 @@ extern void send_status_to_server();
 extern void out(int pin, bool status);
 extern bool ENABLE_SYSTEM_BY_CONTROL;
 extern void wait(unsigned long ms);
+extern void control_handle(String cmd);
+
+
+time_t update_sensor_interval = 20000;
+time_t update_sensor_t; //millis()
 
 String mqtt_Message;
 
@@ -42,7 +47,7 @@ PubSubClient mqtt_client(mqtt_espClient);
 
 #pragma region parseTopic
 void handleTopic__Mushroom_Commands_HubID() {
-	StaticJsonBuffer<200> jsonBuffer;
+	StaticJsonBuffer<500> jsonBuffer;
 	JsonObject& commands = jsonBuffer.parseObject(mqtt_Message);
 
 	String HUB_ID = commands["HUB_ID"].as<String>();
@@ -52,12 +57,13 @@ void handleTopic__Mushroom_Commands_HubID() {
 
 	CMD_ID = commands["CMD_ID"].as<String>();
 	bool isCommandFromApp = false;
+	static bool firsControlFromRetain = true;
+
 	CMD_ID.trim();
 	if (CMD_ID.startsWith("HW-")) {
 		//DEBUG.print(("Command ID "));
 		//DEBUG.print(CMD_ID);
 		//DEBUG.print((" was excuted."));
-		static bool firsControlFromRetain = true;
 		if (!firsControlFromRetain) {
 			DEBUG.println(("Skipped\r\n"));
 			return;
@@ -68,87 +74,108 @@ void handleTopic__Mushroom_Commands_HubID() {
 		isCommandFromApp = true;
 		ENABLE_SYSTEM_BY_CONTROL = true;
 	}
-	String pump_mix_stt = commands["MIST"].as<String>();
-	extern bool skip_auto_pump_mix;
-	if (pump_mix_stt == on_)
-	{
-		skip_auto_pump_mix = true;
-		pump_mix_change = control(PUMP_MIX, true, false, isCommandFromApp);
-		create_logs("Pump_Mix", true, isCommandFromApp);
+	
+	if (isCommandFromApp || firsControlFromRetain) {
+		//gi?m update_sensor_interval
+		update_sensor_interval = 10000;
+		update_sensor_t = millis();
 
-		//pump_mix_change = control(PUMP_FLOOR, true, false, isCommandFromApp);
-		//create_logs("Pump_Floor", true, isCommandFromApp);
-		flag_schedule_pump_floor = true;
-	}
-	else if (pump_mix_stt == off_)
-	{
-		skip_auto_pump_mix = true;
-		pump_mix_change = control(PUMP_MIX, false, false, isCommandFromApp);
-		create_logs("Pump_Mix", false, isCommandFromApp);
+		String pump_mix_stt = commands["MIST"].as<String>();
+		extern bool skip_auto_pump_mix;
+		if (pump_mix_stt == on_ && stt_pump_mix == false)
+		{
+			skip_auto_pump_mix = true;
+			pump_mix_change = control(PUMP_MIX, true, true, isCommandFromApp);
+			//create_logs("Pump_Mix", true, isCommandFromApp);
 
-		pump_mix_change = control(PUMP_FLOOR, false, false, isCommandFromApp);
-		create_logs("Pump_Floor", false, isCommandFromApp);
-	}
+			//pump_mix_change = control(PUMP_FLOOR, true, false, isCommandFromApp);
+			//create_logs("Pump_Floor", true, isCommandFromApp);
+			flag_schedule_pump_floor = true;
+		}
+		else if (pump_mix_stt == off_ && stt_pump_mix == true)
+		{
+			skip_auto_pump_mix = true;
+			pump_mix_change = control(PUMP_MIX, false, true, isCommandFromApp);
+			//create_logs("Pump_Mix", false, isCommandFromApp);
 
-	String light_stt = commands["LIGHT"].as<String>();
-	extern bool skip_auto_light;
-	if (light_stt == on_)
-	{
-		skip_auto_light = true;
-		light_change = control(LIGHT, true, false, isCommandFromApp);
-		create_logs("Light", true, isCommandFromApp);
-	}
-	else if (light_stt == off_)
-	{
-		skip_auto_light = true;
-		light_change = control(LIGHT, false, false, isCommandFromApp);
-		create_logs("Light", false, isCommandFromApp);
-	}
+			pump_mix_change = control(PUMP_FLOOR, false, true, isCommandFromApp);
+			//create_logs("Pump_Floor", false, isCommandFromApp);
+		}
 
-	String fan_stt = commands["FAN"].as<String>();
-	extern bool skip_auto_fan_mix;
-	if (fan_stt == on_)
-	{
-		skip_auto_fan_mix = true;
-		fan_change = control(FAN_MIX, true, false, isCommandFromApp);
-		create_logs("Fan_Mix", true, isCommandFromApp);
+		String light_stt = commands["LIGHT"].as<String>();
+		extern bool skip_auto_light;
+		if (light_stt == on_ && stt_light == false)
+		{
+			skip_auto_light = true;
+			light_change = control(LIGHT, true, true, isCommandFromApp);
+			//create_logs("Light", true, isCommandFromApp);
+		}
+		else if (light_stt == off_ && stt_light == true)
+		{
+			skip_auto_light = true;
+			light_change = control(LIGHT, false, true, isCommandFromApp);
+			//create_logs("Light", false, isCommandFromApp);
+		}
 
-		control(FAN_WIND, true, false, isCommandFromApp);
-		create_logs("Fan_Wind", true, isCommandFromApp);
-	}
-	else if (fan_stt == off_)
-	{
-		skip_auto_fan_mix = true;
-		fan_change = control(FAN_MIX, false, false, isCommandFromApp);
-		create_logs("Fan_Mix", false, isCommandFromApp);
+		String fan_stt = commands["FAN"].as<String>();
+		extern bool skip_auto_fan_mix;
+		if (fan_stt == on_ && stt_fan_mix == false)
+		{
+			skip_auto_fan_mix = true;
+			fan_change = control(FAN_MIX, true, true, isCommandFromApp);
+			//create_logs("Fan_Mix", true, isCommandFromApp);
 
-		control(FAN_WIND, false, false, isCommandFromApp);
-		create_logs("Fan_Wind", false, isCommandFromApp);
-	}
+			control(FAN_WIND, true, true, isCommandFromApp);
+			//create_logs("Fan_Wind", true, isCommandFromApp);
+		}
+		else if (fan_stt == off_ && stt_fan_mix == true)
+		{
+			skip_auto_fan_mix = true;
+			fan_change = control(FAN_MIX, false, true, isCommandFromApp);
+			//create_logs("Fan_Mix", false, isCommandFromApp);
 
-	if (isCommandFromApp) {
-		send_status_to_server();
+			control(FAN_WIND, false, true, isCommandFromApp);
+			//create_logs("Fan_Wind", false, isCommandFromApp);
+		}
+
+		/*if (isCommandFromApp) {
+			send_status_to_server();
+		}*/
 	}
 }
 
 void handleTopic__Mushroom_Library_HubID() {
-	StaticJsonBuffer<200> jsonBuffer;
+	const size_t bufferSize = JSON_OBJECT_SIZE(7) + 120;
+	DynamicJsonBuffer jsonBuffer(bufferSize);
+	//StaticJsonBuffer<500> jsonBuffer;
 	JsonObject& lib = jsonBuffer.parseObject(mqtt_Message);
-	TEMP_MAX = lib["TEMP_MAX"].as<int>();
-	TEMP_MIN = lib["TEMP_MIN"].as<int>();
-	HUMI_MAX = lib["HUMI_MAX"].as<int>();
-	HUMI_MIN = lib["HUMI_MIN"].as<int>();
-	LIGHT_MAX = lib["LIGHT_MAX"].as<int>();
-	LIGHT_MIN = lib["LIGHT_MIN"].as<int>();
-	DATE_HAVERST_PHASE = lib["DATE_HAVERST_PHASE"].as<long>();
-	library = true;
-	DEBUG.println("TEMP_MAX = " + String(TEMP_MAX));
-	DEBUG.println("TEMP_MIN = " + String(TEMP_MIN));
-	DEBUG.println("HUMI_MAX = " + String(HUMI_MAX));
-	DEBUG.println("HUMI_MIN = " + String(HUMI_MIN));
-	DEBUG.println("LIGHT_MAX = " + String(LIGHT_MAX));
-	DEBUG.println("LIGHT_MIN = " + String(LIGHT_MIN));
-	DEBUG.println("DATE_HAVERST_PHASE = " + String(DATE_HAVERST_PHASE));
+	if (lib.success()) {
+		TEMP_MAX = lib["TEMP_MAX"];
+		TEMP_MIN = lib["TEMP_MIN"];
+		HUMI_MAX = lib["HUMI_MAX"];
+		HUMI_MIN = lib["HUMI_MIN"];
+		LIGHT_MAX = lib["LIGHT_MAX"];
+		LIGHT_MIN = lib["LIGHT_MIN"];
+		DATE_HAVERST_PHASE = lib["DATE_HAVERST_PHASE"];
+		library = true;
+		
+		String d;
+		d += ("TEMP_MAX = " + String(TEMP_MAX)) + "\r\n";
+		d += ("TEMP_MIN = " + String(TEMP_MIN)) + "\r\n";
+		d += ("HUMI_MAX = " + String(HUMI_MAX)) + "\r\n";
+		d += ("HUMI_MIN = " + String(HUMI_MIN)) + "\r\n";
+		d += ("LIGHT_MAX = " + String(LIGHT_MAX)) + "\r\n";
+		d += ("LIGHT_MIN = " + String(LIGHT_MIN)) + "\r\n";
+		d += ("DATE_HAVERST_PHASE = " + String(DATE_HAVERST_PHASE));
+
+		DEBUG.println(d);
+		//mqtt_publish("Mushroom/DEBUG/" + HubID, mqtt_Message);
+		//mqtt_publish("Mushroom/DEBUG/" + HubID, d);
+	}
+	else {
+		mqtt_publish("Mushroom/DEBUG/" + HubID, "Parse library fail");
+	}
+
 }
 #pragma endregion
 
@@ -198,7 +225,7 @@ void mqtt_callback(char* topic, uint8_t* payload, unsigned int length) {
 	}
 
 	else if (topicStr == "Mushroom/Terminal") {
-		StaticJsonBuffer<250> jsonBuffer;
+		StaticJsonBuffer<550> jsonBuffer;
 		JsonObject& terminal = jsonBuffer.parseObject(mqtt_Message);
 		/*
 		Mushroom/Terminal
@@ -253,8 +280,8 @@ void mqtt_callback(char* topic, uint8_t* payload, unsigned int length) {
 			DEBUG.println(("DONE!"));
 		}
 		else if (mqtt_Message.indexOf("/get version") > -1) {
-			//StaticJsonBuffer<200> jsBuffer;
-			DynamicJsonBuffer jsBuffer(200);
+			//StaticJsonBuffer<500> jsBuffer;
+			DynamicJsonBuffer jsBuffer(500);
 			JsonObject& jsData = jsBuffer.createObject();
 			jsData["HUB_ID"] = HubID;
 			jsData["FW Version"] = _firmwareVersion;
@@ -265,15 +292,17 @@ void mqtt_callback(char* topic, uint8_t* payload, unsigned int length) {
 			mqtt_publish("Mushroom/Terminal/" + HubID, data);
 		}
 		else if (mqtt_Message.indexOf("/get library") > -1) {
-			//StaticJsonBuffer<200> jsBuffer;
-			DynamicJsonBuffer jsBuffer(200);
+			//StaticJsonBuffer<500> jsBuffer;
+			DynamicJsonBuffer jsBuffer(500);
 			JsonObject& jsLib = jsBuffer.createObject();
+			jsLib["library"] = library;
 			jsLib["TEMP_MAX"] = TEMP_MAX;
 			jsLib["TEMP_MIN"] = TEMP_MIN;
 			jsLib["HUMI_MAX"] = HUMI_MAX;
 			jsLib["HUMI_MIN"] = HUMI_MIN;
 			jsLib["LIGHT_MAX"] = LIGHT_MAX;
 			jsLib["LIGHT_MIN"] = LIGHT_MIN;
+			jsLib["DATE_HAVERST_PHASE"] = DATE_HAVERST_PHASE;
 
 			String libs;
 			libs.reserve(100);
@@ -283,7 +312,6 @@ void mqtt_callback(char* topic, uint8_t* payload, unsigned int length) {
 
 		String mqtt_cmd = mqtt_Message;
 		mqtt_cmd.toUpperCase();
-		extern void control_handle(String cmd);
 		control_handle(mqtt_cmd);
 	}
 

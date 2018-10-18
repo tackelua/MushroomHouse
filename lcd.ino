@@ -83,7 +83,7 @@ void lcd_show_line_0() {
 			//lcd.setCursor(0, 0);
 			//lcd.print("  CONNECTION  LOST  ");		
 			
-			StaticJsonBuffer<200> jsBuffer;
+			StaticJsonBuffer<500> jsBuffer;
 			JsonObject& jsProMicro = jsBuffer.createObject();
 			jsProMicro["cmd"] = "l0";
 			jsProMicro["dt"] = "  CONNECTION  LOST  ";
@@ -100,7 +100,7 @@ void lcd_show_line_0() {
 			//lcd.setCursor(0, 0);
 			//lcd.print(" ALARM WATER EMPTY! ");
 
-			StaticJsonBuffer<200> jsBuffer;
+			StaticJsonBuffer<500> jsBuffer;
 			JsonObject& jsProMicro = jsBuffer.createObject();
 			jsProMicro["cmd"] = "l0";
 			jsProMicro["dt"] = " ALARM WATER EMPTY! ";
@@ -115,7 +115,7 @@ void lcd_show_line_0() {
 		//lcd.setCursor(0, 0);
 		//lcd.print("   MUSHROOM-" + HubID + "   ");
 
-		StaticJsonBuffer<200> jsBuffer;
+		StaticJsonBuffer<500> jsBuffer;
 		JsonObject& jsProMicro = jsBuffer.createObject();
 		jsProMicro["cmd"] = "l0";
 		jsProMicro["dt"] = "   MUSHROOM-" + HubID + "   ";

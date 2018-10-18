@@ -254,7 +254,7 @@ void updateTimeStamp(unsigned long interval = 0) {
 
 				//gửi cho pro mini
 				{
-					StaticJsonBuffer<200> jsBuffer;
+					StaticJsonBuffer<500> jsBuffer;
 					JsonObject& jsProMicro = jsBuffer.createObject();
 					jsProMicro["cmd"] = "ts";
 					jsProMicro["ts"] = now();
@@ -283,7 +283,7 @@ void updateTimeStamp(unsigned long interval = 0) {
 
 				//gửi cho pro mini
 				{
-					StaticJsonBuffer<200> jsBuffer;
+					StaticJsonBuffer<500> jsBuffer;
 					JsonObject& jsProMicro = jsBuffer.createObject();
 					jsProMicro["cmd"] = "ts";
 					jsProMicro["ts"] = now();
@@ -347,9 +347,17 @@ int temp = 0;
 int humi = 0;
 int light = 0;
 void update_sensor(unsigned long period) {
+	//reset update_sensor_interval
+	if (millis() - update_sensor_t > 20000) {
+		update_sensor_interval = 20000;
+		update_sensor_t = millis();
+	}
+	mqtt_loop();
+
+
 	static int sensor_fail = 0;
 	//check waterEmpty nếu thay đổi thì update ngay lập tức
-	bool flag_update_now = false;
+	static bool flag_update_now = true;
 	static bool waterEmpty_pre = false;
 	static bool waterEmpty;
 	waterEmpty = isWaterEmpty();
@@ -361,6 +369,7 @@ void update_sensor(unsigned long period) {
 	//update sensors data to server every period milli seconds
 	static unsigned long preMillis = millis() - period - 1;
 	if (flag_update_now || (millis() - preMillis) > period) {
+		flag_update_now = false;
 		preMillis = millis();
 		float ftemp, fhumi, flight;
 		ftemp = readTemp1();
@@ -434,7 +443,7 @@ void update_sensor(unsigned long period) {
 			sensor_fail = 0;
 		}
 
-		StaticJsonBuffer<200> jsBuffer;
+		StaticJsonBuffer<500> jsBuffer;
 		JsonObject& jsData = jsBuffer.createObject();
 		jsData["HUB_ID"] = HubID;
 		jsData["TEMP"] = temp;
@@ -468,10 +477,10 @@ void update_sensor(unsigned long period) {
 		mqtt_publish(("Mushroom/Sensor/" + HubID), data, true);
 
 		thingspeak_update(ftemp, fhumi, flight);
-		mqtt_publish("Mushroom/DEBUG/" + HubID, "Sensor: " + String(ftemp) + " " + String(fhumi) + " " + String(flight) + "\nsensor_fail: " + String(sensor_fail));
+		//mqtt_publish("Mushroom/DEBUG/" + HubID, "Sensor: " + String(ftemp) + " " + String(fhumi) + " " + String(flight) + "\nsensor_fail: " + String(sensor_fail));
 
 		DEBUG.println("Update sensor takes " + String(t_read_sensors) + "ms");
-		mqtt_publish("Mushroom/DEBUG/" + HubID, "Time Read Sensor : " + String(t_read_sensors));
+		//mqtt_publish("Mushroom/DEBUG/" + HubID, "Time Read Sensor : " + String(t_read_sensors));
 	}
 }
 
@@ -504,7 +513,6 @@ void out(int pin, bool status) {
 	default:
 		break;
 	}
-	thingspeak_log_control(pin, status);
 
 	//t_lcd_backlight_change = millis();
 	//stt_lcd_backlight = true;
@@ -512,7 +520,8 @@ void out(int pin, bool status) {
 }
 
 bool create_logs(String relayName, bool status, bool isCommandFromApp) {
-	StaticJsonBuffer<200> jsLogBuffer;
+	//return false;
+	StaticJsonBuffer<500> jsLogBuffer;
 	JsonObject& jsLog = jsLogBuffer.createObject();
 	jsLog["HUB_ID"] = HubID;
 	String content = relayName;
@@ -547,12 +556,13 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 		stt_pump_mix = status;
 		out(pin, status ? ON : OFF);
 		if (update_to_server) {
-			create_logs("Pump_Mix", status, isCommandFromApp);
 			send_status_to_server();
+			create_logs("Pump_Mix", status, isCommandFromApp);
 		}
+		thingspeak_log_control(pin, status);
 		return true;
 	}
-	if ((pin == PUMP_FLOOR)/* && (stt_pump_floor != status)*/) {
+	if ((pin == PUMP_FLOOR) /*&& (stt_pump_floor != status)*/) {
 		if (isWaterEmpty() && status == ON) {
 			mqtt_publish(("Mushroom/DEBUG/" + HubID).c_str(), "WATER EMPTY, CAN NOT ON PUMP_FLOOR");
 			return true;
@@ -561,9 +571,10 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 		stt_pump_floor = status;
 		out(pin, status ? ON : OFF);
 		if (update_to_server) {
-			create_logs("Pump_Floor", status, isCommandFromApp);
 			send_status_to_server();
+			create_logs("Pump_Floor", status, isCommandFromApp);
 		}
+		thingspeak_log_control(pin, status);
 		return true;
 	}
 	if ((pin == FAN_MIX) /*&& (stt_fan_mix != status)*/) {
@@ -571,9 +582,10 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 		stt_fan_mix = status;
 		out(pin, status ? ON : OFF);
 		if (update_to_server) {
-			create_logs("Fan_Mix", status, isCommandFromApp);
 			send_status_to_server();
+			create_logs("Fan_Mix", status, isCommandFromApp);
 		}
+		thingspeak_log_control(pin, status);
 		return true;
 	}
 	if ((pin == FAN_WIND) /*&& (stt_fan_wind != status)*/) {
@@ -581,8 +593,8 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 		stt_fan_wind = status;
 		out(pin, status ? ON : OFF);
 		if (update_to_server) {
-			create_logs("Fan_Wind", status, isCommandFromApp);
 			send_status_to_server();
+			create_logs("Fan_Wind", status, isCommandFromApp);
 		}
 		return true;
 	}
@@ -591,9 +603,10 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 		stt_light = status;
 		out(pin, status ? ON : OFF);
 		if (update_to_server) {
-			create_logs("Light", status, isCommandFromApp);
 			send_status_to_server();
+			create_logs("Light", status, isCommandFromApp);
 		}
+		thingspeak_log_control(pin, status);
 		return true;
 	}
 
@@ -601,15 +614,16 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 }
 
 void send_status_to_server() {
+	static unsigned long num_update = 0;
 	DEBUG.println(("send_status_to_server"));
 
-	StaticJsonBuffer<200> jsBuffer;
+	StaticJsonBuffer<500> jsBuffer;
 	JsonObject& jsStatus = jsBuffer.createObject();
 	jsStatus["HUB_ID"] = HubID;
 	jsStatus["MIST"] = stt_pump_mix ? on_ : off_;
 	jsStatus["FAN"] = stt_fan_mix ? on_ : off_;
 	jsStatus["LIGHT"] = stt_light ? on_ : off_;
-	jsStatus["CMD_ID"] = "HW-" + String(now());;
+	jsStatus["CMD_ID"] = "HW-" + String(++num_update);
 
 	String jsStatusStr;
 	jsStatusStr.reserve(150);
@@ -627,16 +641,17 @@ void auto_control() {
 	//https://prnt.sc/j2oxmu https://snag.gy/6E7xhU.jpg
 
 	//auto trở lại sau khi điều khiển 5 phút
-	if (skip_auto_light && (millis() - t_light_change) > (5 * 60000)) {
+	unsigned long t_auto_return = 1 * 60000;
+	if (skip_auto_light && (millis() - t_light_change) > t_auto_return) {
 		skip_auto_light = false;
 	}
-	if (skip_auto_pump_mix && (millis() - t_pump_mix_change) > (5 * 60000)) {
+	if (skip_auto_pump_mix && (millis() - t_pump_mix_change) > t_auto_return) {
 		skip_auto_pump_mix = false;
 	}
-	if (skip_auto_fan_mix && (millis() - t_fan_mix_change) > (5 * 60000)) {
+	if (skip_auto_fan_mix && (millis() - t_fan_mix_change) > t_auto_return) {
 		skip_auto_fan_mix = false;
 	}
-	if (skip_auto_fan_wind && (millis() - t_fan_wind_change) > (5 * 60000)) {
+	if (skip_auto_fan_wind && (millis() - t_fan_wind_change) > t_auto_return) {
 		skip_auto_fan_wind = false;
 	}
 	//==============================================================
@@ -752,7 +767,7 @@ void auto_control() {
 	}
 
 	//b. Phun sương làm mát, duy trì độ ẩm. Thời gian bật: 90s, mỗi lần check điều kiện cách nhau 30 phút.
-	if (!skip_auto_pump_mix && library && ((temp != -1 && temp > TEMP_MAX) && (humi != -1 && humi < HUMI_MIN)) && ((millis() - t_pump_mix_change) > (30 * 1000 * SECS_PER_MIN)) && !stt_pump_mix) {
+	if (!skip_auto_pump_mix && library && ((temp != -1 && temp > TEMP_MAX) && (humi != -1 && humi < HUMI_MIN)) && ((millis() - t_pump_mix_change) > (30 * 1000 * SECS_PER_MIN))/* && !stt_pump_mix*/) {
 		if (now() > DATE_HAVERST_PHASE) {
 			DEBUG.println("AUTO PUMP_MIX ON");
 			control(PUMP_MIX, true, true, false);
@@ -800,7 +815,7 @@ void auto_control() {
 
 void updateFirmware(String url) {
 	{
-		StaticJsonBuffer<200> jsBuffer;
+		StaticJsonBuffer<500> jsBuffer;
 		JsonObject& jsProMicro = jsBuffer.createObject();
 		jsProMicro["cmd"] = "uf";
 		String strProMicro;

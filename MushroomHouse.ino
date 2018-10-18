@@ -32,7 +32,7 @@
 #include <ThingSpeak.h>
 #include "esp_system.h"
 
-#define __VERSION__  "3.1.23 testing"
+#define __VERSION__  "3.1.23b9 testing"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
@@ -42,6 +42,7 @@ void updateTimeStamp(unsigned long interval);
 bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp);
 
 HardwareSerial LCD_UART(2);
+
 
 enum lcd_line_0 {
 	SHOW_HUBID = 0,
@@ -127,10 +128,10 @@ void loop()
 	serial_command_handle();
 	button_handle();
 	warming_alarm();
-	update_sensor(10000);
+	update_sensor(update_sensor_interval);
 	auto_control();
 	//lcd_repair();
-	debug_freeHeap();
+	//debug_freeHeap();
 }
 
 void debug_freeHeap() {
