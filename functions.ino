@@ -92,7 +92,7 @@ void wifi_init() {
 	WiFi.mode(WIFI_STA);
 
 	WiFiManager wifiManager;
-	wifiManager.autoConnect(String("MUSHROOM-" + HubID).c_str());
+	wifiManager.autoConnect(String("MUSHROOMHOUSE-" + HubID).c_str());
 
 	//DEBUG.println(("\nWiFi attempting to connect to MIC"));
 	//WiFi.begin("IoT Wifi", "mic@dtu12345678()");
@@ -522,8 +522,10 @@ void out(int pin, bool status) {
 	//lcd.backlight();
 }
 
-bool create_logs(String relayName, bool status, bool isCommandFromApp) {
-	//return false;
+void create_logs(String relayName, bool status, bool isCommandFromApp) {
+	if (!mqtt_client.connected()) {
+		return;
+	}
 	StaticJsonBuffer<500> jsLogBuffer;
 	JsonObject& jsLog = jsLogBuffer.createObject();
 	jsLog["HUB_ID"] = HubID;
@@ -537,17 +539,15 @@ bool create_logs(String relayName, bool status, bool isCommandFromApp) {
 	jsStrLog.reserve(150);
 	jsLog.printTo(jsStrLog);
 	bool res = mqtt_publish("Mushroom/Logs/" + HubID, jsStrLog);
-
-	return res;
 }
 
 void send_status_to_server();
-bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp);
-bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp) { //status = true -> ON; false -> OFF
+void control(int pin, bool status, bool update_to_server, bool isCommandFromApp);
+void control(int pin, bool status, bool update_to_server, bool isCommandFromApp) { //status = true -> ON; false -> OFF
 	if ((pin == PUMP_MIX)/* && (stt_pump_mix != status)*/) {
 		if (isWaterEmpty() && status == ON) {
 			mqtt_publish(("Mushroom/DEBUG/" + HubID).c_str(), "WATER EMPTY, CAN NOT ON PUMP_MIX");
-			return true;
+			return;
 		}
 		t_pump_mix_change = millis();
 		stt_pump_mix = status;
@@ -556,13 +556,11 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 			send_status_to_server();
 			create_logs("Pump_Mix", status, isCommandFromApp);
 		}
-		thingspeak_log_control(pin, status);
-		return true;
 	}
 	else if ((pin == PUMP_FLOOR) /*&& (stt_pump_floor != status)*/) {
 		if (isWaterEmpty() && status == ON) {
 			mqtt_publish(("Mushroom/DEBUG/" + HubID).c_str(), "WATER EMPTY, CAN NOT ON PUMP_FLOOR");
-			return true;
+			return ;
 		}
 		t_pump_floor_change = millis();
 		stt_pump_floor = status;
@@ -571,8 +569,6 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 			send_status_to_server();
 			create_logs("Pump_Floor", status, isCommandFromApp);
 		}
-		thingspeak_log_control(pin, status);
-		return true;
 	}
 	else if ((pin == FAN_MIX) /*&& (stt_fan_mix != status)*/) {
 		t_fan_mix_change = millis();
@@ -582,8 +578,6 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 			send_status_to_server();
 			create_logs("Fan_Mix", status, isCommandFromApp);
 		}
-		thingspeak_log_control(pin, status);
-		return true;
 	}
 	else if ((pin == FAN_WIND) /*&& (stt_fan_wind != status)*/) {
 		t_fan_wind_change = millis();
@@ -593,7 +587,6 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 			send_status_to_server();
 			create_logs("Fan_Wind", status, isCommandFromApp);
 		}
-		return true;
 	}
 	else if ((pin == LIGHT) /*&& (stt_light != status)*/) {
 		t_light_change = millis();
@@ -603,14 +596,13 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 			send_status_to_server();
 			create_logs("Light", status, isCommandFromApp);
 		}
-		thingspeak_log_control(pin, status);
-		return true;
 	}
-
-	return false;
 }
 
 void send_status_to_server() {
+	if (!mqtt_client.connected()) {
+		return;
+	}
 	static unsigned long num_update = 0;
 	DEBUG.println(("send_status_to_server"));
 
@@ -690,8 +682,7 @@ void auto_control() {
 
 	if (pump_floor_on) {
 		DEBUG.println("AUTO PUMP_FLOOR OFF");
-		control(PUMP_FLOOR, true, false, false);
-		create_logs("Pump_Floor", true, false);
+		control(PUMP_FLOOR, true, true, false);
 	}
 	//+ PUMP_FLOOR tự tắt sau 90s
 	if ((millis() - t_pump_floor_change) > 90000) {

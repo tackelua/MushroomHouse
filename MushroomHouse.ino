@@ -32,14 +32,14 @@
 #include <ThingSpeak.h>
 #include "esp_system.h"
 
-#define __VERSION__  "3.1.24 testing"
+#define __VERSION__  "3.1.24b1 testing"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
 String HubID;
 
 void updateTimeStamp(unsigned long interval);
-bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp);
+void control(int pin, bool status, bool update_to_server, bool isCommandFromApp);
 
 HardwareSerial LCD_UART(2);
 

@@ -28,8 +28,8 @@ long DATE_HAVERST_PHASE;
 bool library = false;
 
 extern bool stt_pump_mix, stt_fan_mix, stt_light;
-extern bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp);
-extern bool create_logs(String relayName, bool status, bool isCommandFromApp);
+extern void control(int pin, bool status, bool update_to_server, bool isCommandFromApp);
+extern void create_logs(String relayName, bool status, bool isCommandFromApp);
 extern void send_status_to_server();
 extern void out(int pin, bool status);
 extern bool ENABLE_SYSTEM_BY_CONTROL;
@@ -52,9 +52,6 @@ void handleTopic__Mushroom_Commands_HubID() {
 	JsonObject& commands = jsonBuffer.parseObject(mqtt_Message);
 
 	String HUB_ID = commands["HUB_ID"].as<String>();
-	bool pump_mix_change = false;
-	bool fan_change = false;
-	bool light_change = false;
 
 	CMD_ID = commands["CMD_ID"].as<String>();
 	bool isCommandFromApp = false;
@@ -75,8 +72,8 @@ void handleTopic__Mushroom_Commands_HubID() {
 		isCommandFromApp = true;
 		ENABLE_SYSTEM_BY_CONTROL = true;
 	}
-	
-	if (isCommandFromApp || firsControlFromRetain) { 
+
+	if (isCommandFromApp || firsControlFromRetain) {
 		delay_update_sensor_t = millis();
 		//gi?m update_sensor_interval
 		update_sensor_interval = 5000;
@@ -87,7 +84,7 @@ void handleTopic__Mushroom_Commands_HubID() {
 		if (pump_mix_stt == on_ && stt_pump_mix == false)
 		{
 			skip_auto_pump_mix = true;
-			pump_mix_change = control(PUMP_MIX, true, true, isCommandFromApp);
+			control(PUMP_MIX, true, true, isCommandFromApp);
 			//create_logs("Pump_Mix", true, isCommandFromApp);
 
 			//pump_mix_change = control(PUMP_FLOOR, true, false, isCommandFromApp);
@@ -97,10 +94,10 @@ void handleTopic__Mushroom_Commands_HubID() {
 		else if (pump_mix_stt == off_ && stt_pump_mix == true)
 		{
 			skip_auto_pump_mix = true;
-			pump_mix_change = control(PUMP_MIX, false, true, isCommandFromApp);
+			control(PUMP_MIX, false, true, isCommandFromApp);
 			//create_logs("Pump_Mix", false, isCommandFromApp);
 
-			pump_mix_change = control(PUMP_FLOOR, false, true, isCommandFromApp);
+			control(PUMP_FLOOR, false, true, isCommandFromApp);
 			//create_logs("Pump_Floor", false, isCommandFromApp);
 		}
 
@@ -109,14 +106,12 @@ void handleTopic__Mushroom_Commands_HubID() {
 		if (light_stt == on_ && stt_light == false)
 		{
 			skip_auto_light = true;
-			light_change = control(LIGHT, true, true, isCommandFromApp);
-			//create_logs("Light", true, isCommandFromApp);
+			control(LIGHT, true, true, isCommandFromApp);
 		}
 		else if (light_stt == off_ && stt_light == true)
 		{
 			skip_auto_light = true;
-			light_change = control(LIGHT, false, true, isCommandFromApp);
-			//create_logs("Light", false, isCommandFromApp);
+			control(LIGHT, false, true, isCommandFromApp);
 		}
 
 		String fan_stt = commands["FAN"].as<String>();
@@ -124,25 +119,17 @@ void handleTopic__Mushroom_Commands_HubID() {
 		if (fan_stt == on_ && stt_fan_mix == false)
 		{
 			skip_auto_fan_mix = true;
-			fan_change = control(FAN_MIX, true, true, isCommandFromApp);
-			//create_logs("Fan_Mix", true, isCommandFromApp);
+			control(FAN_MIX, true, true, isCommandFromApp);
 
 			control(FAN_WIND, true, true, isCommandFromApp);
-			//create_logs("Fan_Wind", true, isCommandFromApp);
 		}
 		else if (fan_stt == off_ && stt_fan_mix == true)
 		{
 			skip_auto_fan_mix = true;
-			fan_change = control(FAN_MIX, false, true, isCommandFromApp);
-			//create_logs("Fan_Mix", false, isCommandFromApp);
+			control(FAN_MIX, false, true, isCommandFromApp);
 
 			control(FAN_WIND, false, true, isCommandFromApp);
-			//create_logs("Fan_Wind", false, isCommandFromApp);
 		}
-
-		/*if (isCommandFromApp) {
-			send_status_to_server();
-		}*/
 	}
 }
 
@@ -160,7 +147,7 @@ void handleTopic__Mushroom_Library_HubID() {
 		LIGHT_MIN = lib["LIGHT_MIN"];
 		DATE_HAVERST_PHASE = lib["DATE_HAVERST_PHASE"];
 		library = true;
-		
+
 		String d;
 		d += ("TEMP_MAX = " + String(TEMP_MAX)) + "\r\n";
 		d += ("TEMP_MIN = " + String(TEMP_MIN)) + "\r\n";
@@ -195,7 +182,7 @@ void mqtt_callback(char* topic, uint8_t* payload, unsigned int length) {
 	//ulong t = millis();
 	//DEBUG.print(("\r\n#1 FREE RAM : "));
 	//DEBUG.println(ESP.getFreeHeap());
-	
+
 	String topicStr = topic;
 
 	DEBUG.println(("\r\n>>>"));
