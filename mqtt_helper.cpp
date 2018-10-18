@@ -37,7 +37,7 @@ extern void wait(unsigned long ms);
 extern void control_handle(String cmd);
 
 
-time_t update_sensor_interval = 20000;
+time_t update_sensor_interval = 30000;
 time_t update_sensor_t; //millis()
 
 String mqtt_Message;
@@ -77,7 +77,7 @@ void handleTopic__Mushroom_Commands_HubID() {
 	
 	if (isCommandFromApp || firsControlFromRetain) {
 		//gi?m update_sensor_interval
-		update_sensor_interval = 10000;
+		update_sensor_interval = 5000;
 		update_sensor_t = millis();
 
 		String pump_mix_stt = commands["MIST"].as<String>();
@@ -193,7 +193,7 @@ void mqtt_callback(char* topic, uint8_t* payload, unsigned int length) {
 	//ulong t = millis();
 	//DEBUG.print(("\r\n#1 FREE RAM : "));
 	//DEBUG.println(ESP.getFreeHeap());
-
+	
 	String topicStr = topic;
 
 	DEBUG.println(("\r\n>>>"));
@@ -224,42 +224,7 @@ void mqtt_callback(char* topic, uint8_t* payload, unsigned int length) {
 		handleTopic__Mushroom_Library_HubID();
 	}
 
-	else if (topicStr == "Mushroom/Terminal") {
-		StaticJsonBuffer<550> jsonBuffer;
-		JsonObject& terminal = jsonBuffer.parseObject(mqtt_Message);
-		/*
-		Mushroom/Terminal
-		{
-			"Command" : "FOTA",
-			"Hub_ID" : "17C80",
-			"Version" : "",
-			"Url" : "http://autominer.xyz/files/MushroomHouse.bin"
-		}
-		*/
-		if (terminal.success()) {
-			String command = terminal["Command"].as<String>();
-			if (command == "FOTA") {
-				DEBUG.println(("Update firmware function"));
-				String hub = terminal["Hub_ID"].as<String>();
-				if ((hub == HubID) || (hub == "all")) {
-					DEBUG.println("Thoa man dieu kien HubID");
-					String ver = terminal["Version"].as<String>();
-					if (ver != _firmwareVersion) {
-						DEBUG.println("Thoa man dieu kien version");
-						String url = terminal["Url"].as<String>();
-						mqtt_publish("Mushroom/Terminal/" + HubID, "Updating new firmware " + ver);
-						DEBUG.print(("\nUpdating new firmware: "));
-						DEBUG.println(ver);
-						DEBUG.println(url);
-						updateFirmware(url);
-						DEBUG.println(("DONE!"));
-					}
-				}
-			}
-		}
-	}
-
-	if (topicStr == "Mushroom/Terminal/" + HubID) {
+	else if (topicStr == "Mushroom/Terminal/" + HubID) {
 		if (mqtt_Message == "/restart") {
 			mqtt_publish("Mushroom/Terminal/" + HubID, "Restarting");
 			DEBUG.println("\r\nRestart\r\n");
@@ -315,10 +280,45 @@ void mqtt_callback(char* topic, uint8_t* payload, unsigned int length) {
 		control_handle(mqtt_cmd);
 	}
 
+	else if (topicStr == "Mushroom/Terminal") {
+		StaticJsonBuffer<550> jsonBuffer;
+		JsonObject& terminal = jsonBuffer.parseObject(mqtt_Message);
+		/*
+		Mushroom/Terminal
+		{
+			"Command" : "FOTA",
+			"Hub_ID" : "17C80",
+			"Version" : "",
+			"Url" : "http://autominer.xyz/files/MushroomHouse.bin"
+		}
+		*/
+		if (terminal.success()) {
+			String command = terminal["Command"].as<String>();
+			if (command == "FOTA") {
+				DEBUG.println(("Update firmware function"));
+				String hub = terminal["Hub_ID"].as<String>();
+				if ((hub == HubID) || (hub == "all")) {
+					DEBUG.println("Thoa man dieu kien HubID");
+					String ver = terminal["Version"].as<String>();
+					if (ver != _firmwareVersion) {
+						DEBUG.println("Thoa man dieu kien version");
+						String url = terminal["Url"].as<String>();
+						mqtt_publish("Mushroom/Terminal/" + HubID, "Updating new firmware " + ver);
+						DEBUG.print(("\nUpdating new firmware: "));
+						DEBUG.println(ver);
+						DEBUG.println(url);
+						updateFirmware(url);
+						DEBUG.println(("DONE!"));
+					}
+				}
+			}
+		}
+	}
+
 	//DEBUG.print(("#2 FREE RAM : "));
 	//DEBUG.println(ESP.getFreeHeap());
-	//t = millis() - t;
-	//DEBUG.println("Time: " + String(t));
+
+	//DEBUG.println("Time mqtt_callback " + String(millis() - t));
 }
 
 void mqtt_reconnect() {  // Loop until we're reconnected

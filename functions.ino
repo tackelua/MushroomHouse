@@ -348,11 +348,11 @@ int humi = 0;
 int light = 0;
 void update_sensor(unsigned long period) {
 	//reset update_sensor_interval
-	if (millis() - update_sensor_t > 20000) {
-		update_sensor_interval = 20000;
+	if (millis() - update_sensor_t > 30000) {
+		update_sensor_interval = 30000;
 		update_sensor_t = millis();
 	}
-	mqtt_loop();
+	//mqtt_loop();
 
 
 	static int sensor_fail = 0;
@@ -436,6 +436,7 @@ void update_sensor(unsigned long period) {
 		//lcd_print_sensor(temp, humi, light);
 
 		if (sensor_fail > 10) {
+			mqtt_publish("Mushroom/DEBUG/" + HubID, "Restart because sensor fail too much");
 			ESP.restart();
 		}
 
@@ -479,7 +480,6 @@ void update_sensor(unsigned long period) {
 		thingspeak_update(ftemp, fhumi, flight);
 		//mqtt_publish("Mushroom/DEBUG/" + HubID, "Sensor: " + String(ftemp) + " " + String(fhumi) + " " + String(flight) + "\nsensor_fail: " + String(sensor_fail));
 
-		DEBUG.println("Update sensor takes " + String(t_read_sensors) + "ms");
 		//mqtt_publish("Mushroom/DEBUG/" + HubID, "Time Read Sensor : " + String(t_read_sensors));
 	}
 }
@@ -534,13 +534,7 @@ bool create_logs(String relayName, bool status, bool isCommandFromApp) {
 	jsStrLog.reserve(150);
 	jsLog.printTo(jsStrLog);
 	bool res = mqtt_publish("Mushroom/Logs/" + HubID, jsStrLog);
-	String strTime = (F("["));
-	strTime += (hour() < 10 ? String("0") + hour() : hour());
-	strTime += (F(":"));
-	strTime += (minute() < 10 ? String("0") + minute() : minute());
-	strTime += (F(":"));
-	strTime += (second() < 10 ? String("0") + second() : second());
-	strTime += (F("] "));
+
 	return res;
 }
 
@@ -562,7 +556,7 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 		thingspeak_log_control(pin, status);
 		return true;
 	}
-	if ((pin == PUMP_FLOOR) /*&& (stt_pump_floor != status)*/) {
+	else if ((pin == PUMP_FLOOR) /*&& (stt_pump_floor != status)*/) {
 		if (isWaterEmpty() && status == ON) {
 			mqtt_publish(("Mushroom/DEBUG/" + HubID).c_str(), "WATER EMPTY, CAN NOT ON PUMP_FLOOR");
 			return true;
@@ -577,7 +571,7 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 		thingspeak_log_control(pin, status);
 		return true;
 	}
-	if ((pin == FAN_MIX) /*&& (stt_fan_mix != status)*/) {
+	else if ((pin == FAN_MIX) /*&& (stt_fan_mix != status)*/) {
 		t_fan_mix_change = millis();
 		stt_fan_mix = status;
 		out(pin, status ? ON : OFF);
@@ -588,7 +582,7 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 		thingspeak_log_control(pin, status);
 		return true;
 	}
-	if ((pin == FAN_WIND) /*&& (stt_fan_wind != status)*/) {
+	else if ((pin == FAN_WIND) /*&& (stt_fan_wind != status)*/) {
 		t_fan_wind_change = millis();
 		stt_fan_wind = status;
 		out(pin, status ? ON : OFF);
@@ -598,7 +592,7 @@ bool control(int pin, bool status, bool update_to_server, bool isCommandFromApp)
 		}
 		return true;
 	}
-	if ((pin == LIGHT) /*&& (stt_light != status)*/) {
+	else if ((pin == LIGHT) /*&& (stt_light != status)*/) {
 		t_light_change = millis();
 		stt_light = status;
 		out(pin, status ? ON : OFF);
@@ -629,7 +623,6 @@ void send_status_to_server() {
 	jsStatusStr.reserve(150);
 	jsStatus.printTo(jsStatusStr);
 	mqtt_publish("Mushroom/Commands/" + HubID, jsStatusStr, true);
-
 }
 
 bool skip_auto_light = false;

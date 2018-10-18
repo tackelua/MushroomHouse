@@ -32,7 +32,7 @@
 #include <ThingSpeak.h>
 #include "esp_system.h"
 
-#define __VERSION__  "3.1.23b9 testing"
+#define __VERSION__  "3.1.23b10 testing"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
@@ -109,8 +109,11 @@ void setup()
 	mqtt_publish("Mushroom/DEBUG/" + HubID, "SYSTEM READY");
 }
 
+bool test = false;
+time_t t_test;
 void loop()
 {
+	t_test = millis();
 	watchdog_feed();
 	wifi_loop();
 	mqtt_loop();
@@ -128,10 +131,16 @@ void loop()
 	serial_command_handle();
 	button_handle();
 	warming_alarm();
+
 	update_sensor(update_sensor_interval);
 	auto_control();
 	//lcd_repair();
 	//debug_freeHeap();
+
+	if (test) {
+		test = false;
+		DEBUG.println("Time loop = " + String(millis() - t_test));
+	}
 }
 
 void debug_freeHeap() {
