@@ -27,8 +27,8 @@ void sensor_init() {
 
 	// Changing the integration time gives you a longer time over which to sense light
 	// longer timelines are slower, but are good in very low light situtations!
-	tsl.setTiming(TSL2561_INTEGRATIONTIME_13MS);		// shortest integration time (bright light)
-	//tsl.setTiming(TSL2561_INTEGRATIONTIME_101MS);		// medium integration time (medium light)
+	//tsl.setTiming(TSL2561_INTEGRATIONTIME_13MS);		// shortest integration time (bright light)
+	tsl.setTiming(TSL2561_INTEGRATIONTIME_101MS);		// medium integration time (medium light)
 	//tsl.setTiming(TSL2561_INTEGRATIONTIME_402MS);		// longest integration time (dim light)
 }
 float readTemp1() {
@@ -71,7 +71,7 @@ int readLight() {
 	DEBUG.print("Lux: "); DEBUG.println(lux);
 	if (lux == 703) {
 		sensor_init();
-
+		delay(10);
 		uint32_t lum = tsl.getFullLuminosity();
 		uint16_t ir, full;
 		ir = lum >> 16;

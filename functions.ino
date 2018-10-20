@@ -376,13 +376,13 @@ void update_sensor(unsigned long period) {
 		preMillis = millis();
 		float ftemp, fhumi, flight;
 		ftemp = readTemp1();
-		wait(10);
+		//wait(10);
 		//
 		//mqtt_loop();
 		//serial_command_handle();
 		//
 		fhumi = readHumi1();
-		wait(10);
+		//wait(10);
 		//
 		//mqtt_loop();
 		//serial_command_handle();
