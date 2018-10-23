@@ -1,3 +1,4 @@
+#include <Preferences.h>
 #include <Adafruit_Sensor.h>
 #include <DHT_U.h>
 #include <DHT.h>
@@ -32,7 +33,7 @@
 #include <ThingSpeak.h>
 #include "esp_system.h"
 
-#define __VERSION__  "3.1.24b3 testing"
+#define __VERSION__  "3.1.25 testing"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
@@ -97,6 +98,7 @@ void setup()
 	//HubID = "17C80";
 	hardware_init();
 	//lcd_init();
+	load_library();
 
 	wifi_init();
 	out(LED_STT, OFF);

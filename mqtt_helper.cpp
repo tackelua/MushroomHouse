@@ -35,6 +35,7 @@ extern void out(int pin, bool status);
 extern bool ENABLE_SYSTEM_BY_CONTROL;
 extern void wait(unsigned long ms);
 extern void control_handle(String cmd);
+extern void save_library();
 
 
 time_t update_sensor_interval = 30000;
@@ -147,6 +148,9 @@ void handleTopic__Mushroom_Library_HubID() {
 		LIGHT_MIN = lib["LIGHT_MIN"];
 		DATE_HAVERST_PHASE = lib["DATE_HAVERST_PHASE"];
 		library = true;
+
+		//save preferences for load_library
+		save_library();
 
 		String d;
 		d += ("TEMP_MAX = " + String(TEMP_MAX)) + "\r\n";

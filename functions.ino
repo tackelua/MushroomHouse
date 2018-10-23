@@ -9,7 +9,45 @@ String CMD_ID = "         ";
 //extern LiquidCrystal_I2C lcd;
 extern PubSubClient mqtt_client;
 
+Preferences preferences;
+
 #pragma region functions
+void load_library() {
+	DEBUG.println(F("\r\nlibrary"));
+	preferences.begin("library", false);
+	TEMP_MAX = preferences.getInt("TEMP_MAX", 0);
+	TEMP_MIN = preferences.getInt("TEMP_MIN", 0);
+	HUMI_MAX = preferences.getInt("HUMI_MAX", 0);
+	HUMI_MIN = preferences.getInt("HUMI_MIN", 0);
+	LIGHT_MAX = preferences.getInt("LIGHT_MAX", 0);
+	LIGHT_MIN = preferences.getInt("LIGHT_MIN", 0);
+	DATE_HAVERST_PHASE = preferences.getLong("DATE_HAVERST_PHASE", 0);
+	library = true;
+	preferences.end();
+
+	String d;
+	d += ("TEMP_MAX = " + String(TEMP_MAX)) + "\r\n";
+	d += ("TEMP_MIN = " + String(TEMP_MIN)) + "\r\n";
+	d += ("HUMI_MAX = " + String(HUMI_MAX)) + "\r\n";
+	d += ("HUMI_MIN = " + String(HUMI_MIN)) + "\r\n";
+	d += ("LIGHT_MAX = " + String(LIGHT_MAX)) + "\r\n";
+	d += ("LIGHT_MIN = " + String(LIGHT_MIN)) + "\r\n";
+	d += ("DATE_HAVERST_PHASE = " + String(DATE_HAVERST_PHASE));
+	DEBUG.println(d);
+}
+void save_library() {
+	preferences.begin("library", false);
+	preferences.putInt("TEMP_MAX", TEMP_MAX);
+	preferences.putInt("TEMP_MIN", 0);
+	preferences.putInt("HUMI_MAX", HUMI_MAX);
+	preferences.putInt("HUMI_MIN", HUMI_MIN);
+	preferences.putInt("LIGHT_MAX", LIGHT_MAX);
+	preferences.putInt("LIGHT_MIN", LIGHT_MIN);
+	preferences.putLong("DATE_HAVERST_PHASE", DATE_HAVERST_PHASE);
+	library = true;
+	preferences.end();
+}
+
 
 String getTimeStr() {
 	String strTime;
