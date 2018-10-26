@@ -1,4 +1,5 @@
 #include <Preferences.h>
+#include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <DHT_U.h>
 #include <DHT.h>
@@ -17,23 +18,18 @@
 #include <SHT1x.h>
 #include <Button.h>
 #include "Sensor.h"
-#include "hardware.h"
-#include <Wire.h>
-//#include <LiquidCrystal_I2C.h>
+#include "hardware.h" 
 #include "mqtt_helper.h"
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <Update.h>
-#include <ESP32httpUpdate.h>
-//#include "LiquidCrystal_I2C_m.h"
-//#include <Ticker.h>
+#include <ESP32httpUpdate.h> 
 #include <WebServer-esp32/src/WebServer.h>
 #include <DNSServer.h>
-#include <WIFIMANAGER-ESP32/WiFiManager.h>
-#include <ThingSpeak.h>
-#include "esp_system.h"
+#include <WIFIMANAGER-ESP32/WiFiManager.h> 
+//#include "esp_system.h"
 
-#define __VERSION__  "3.1.25 testing"
+#define __VERSION__  "3.1.25b1 testing"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
@@ -61,32 +57,15 @@ int flag_lcd_line_0 = SHOW_HUBID;
 bool ENABLE_SYSTEM_BY_CONTROL = false;
 unsigned long t_ENABLE_SYSTEM;
 
-hw_timer_t *timer = NULL;
-void IRAM_ATTR resetModule() {
-	ets_printf("reboot\n");
-	esp_restart_noos();
-}
-void watchdog_init() {
-	//timer = timerBegin(0, 80, true); //timer 0, div 80
-	//timerAttachInterrupt(timer, &resetModule, true);
-	//timerAlarmWrite(timer, 1000000000, false); //set time in us
-	//timerAlarmEnable(timer); //enable interrupt
-}
-
-void watchdog_feed() {
-	//timerWrite(timer, 0); //reset timer (feed watchdog)
-}
 void wait(unsigned long ms) {
-	watchdog_feed();
 	delay(ms);
 }
 
 void setup()
 {
 	wait(50);
-	watchdog_init();
 	DEBUG.begin(115200);
-	DEBUG.setTimeout(20); 
+	DEBUG.setTimeout(20);
 	LCD_UART.begin(115200, SERIAL_8N1, 16, 17); //baud rate, 8 data bits - no parity - 2 stop bits, RX pin, TX pin
 	LCD_UART.print("{\"cmd\":\"l0\",\"dt\":\" SMART MUSHROOM\"}");
 
@@ -106,17 +85,12 @@ void setup()
 
 	updateTimeStamp(0);
 	mqtt_init();
-	ThingSpeak_init();
 	t_ENABLE_SYSTEM = millis();
 	mqtt_publish("Mushroom/DEBUG/" + HubID, "SYSTEM READY");
 }
 
-bool test = false;
-time_t t_test;
 void loop()
 {
-	t_test = millis();
-	watchdog_feed();
 	wifi_loop();
 	mqtt_loop();
 
@@ -136,13 +110,7 @@ void loop()
 
 	update_sensor(update_sensor_interval);
 	auto_control();
-	//lcd_repair();
-	//debug_freeHeap();
 
-	if (test) {
-		test = false;
-		DEBUG.println("Time loop = " + String(millis() - t_test));
-	}
 }
 
 void debug_freeHeap() {

@@ -517,8 +517,7 @@ void update_sensor(unsigned long period) {
 		}
 
 		mqtt_publish(("Mushroom/Sensor/" + HubID), data, true);
-
-		thingspeak_update(ftemp, fhumi, flight);
+		 
 		//mqtt_publish("Mushroom/DEBUG/" + HubID, "Sensor: " + String(ftemp) + " " + String(fhumi) + " " + String(flight) + "\nsensor_fail: " + String(sensor_fail));
 
 		//mqtt_publish("Mushroom/DEBUG/" + HubID, "Time Read Sensor : " + String(t_read_sensors));
