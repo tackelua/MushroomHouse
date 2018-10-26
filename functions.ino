@@ -386,6 +386,10 @@ int humi = 0;
 int light = 0;
 void update_sensor(unsigned long period) {
 	//reset update_sensor_interval
+	/*
+	sau khi điều khiển từ app thì update_sensor_interval = 5000
+	sau đó 30s thì reset update_sensor_interval thành 30000 như cũ
+	*/
 	if (millis() - update_sensor_t > 30000) {
 		update_sensor_interval = 30000;
 		update_sensor_t = millis();
@@ -410,22 +414,31 @@ void update_sensor(unsigned long period) {
 	//update sensors data to server every period milli seconds
 	static unsigned long preMillis = millis() - period - 1;
 	if (flag_update_now || (millis() - preMillis) > period) {
+		static float ftemp;
+		static float fhumi;
+		static float flight;
+
+		static bool isReadTemp1 = false;
+		static bool isReadHumi1 = false;
+
+		if (!isReadTemp1) {
+			ftemp = readTemp1();
+			isReadTemp1 = true;
+			return;
+		}
+			   
+		if (!isReadHumi1) {
+			fhumi = readHumi1();
+			isReadHumi1 = true;
+			return;
+		}
+
+		flight = readLight();
+		isReadTemp1 = false;
+		isReadHumi1 = false;
+
 		flag_update_now = false;
 		preMillis = millis();
-		float ftemp, fhumi, flight;
-		ftemp = readTemp1();
-		//wait(10);
-		//
-		//mqtt_loop();
-		//serial_command_handle();
-		//
-		fhumi = readHumi1();
-		//wait(10);
-		//
-		//mqtt_loop();
-		//serial_command_handle();
-		//
-		flight = readLight();
 
 		int itemp = round(ftemp);
 		int ihumi = round(fhumi);
@@ -454,25 +467,25 @@ void update_sensor(unsigned long period) {
 			ilight = (ilight > 20000 || ilight < 0 || ilight == 703) ? -1 : ilight;
 		}
 
-		if (itemp != -1) {
+		if (15 <= itemp && itemp <=45) {
 			temp = itemp;
 		}
 		else {
-			temp = 0;
+			//temp = 0;
 			sensor_fail++;
 		}
-		if (ihumi != -1) {
+		if (15 <= ihumi && ihumi <= 100) {
 			humi = ihumi;
 		}
 		else {
-			humi = 0;
+			//humi = 0;
 			sensor_fail++;
 		}
 		if (ilight != -1) {
 			light = ilight;
 		}
 		else {
-			light = 0;
+			//light = 0;
 		}
 		//lcd_print_sensor(temp, humi, light);
 

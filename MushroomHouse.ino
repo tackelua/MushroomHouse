@@ -29,7 +29,7 @@
 #include <WIFIMANAGER-ESP32/WiFiManager.h> 
 //#include "esp_system.h"
 
-#define __VERSION__  "3.1.25b1 testing"
+#define __VERSION__  "3.1.25b2 testing"
 
 String _firmwareVersion = __VERSION__ " " __DATE__ " " __TIME__;
 
@@ -113,10 +113,3 @@ void loop()
 
 }
 
-void debug_freeHeap() {
-	static unsigned long t = millis();
-	if (millis() - t > 10000) {
-		t = millis();
-		mqtt_publish("Mushroom/DEBUG/" + HubID + "/FREEHEAP", "[" + getTimeStr() + "] " + String(ESP.getFreeHeap()));
-	}
-}
